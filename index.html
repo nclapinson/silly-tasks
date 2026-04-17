@@ -743,8 +743,7 @@ function addSwipeHandlers(card, task) {
       card.style.transform  = '';
       card.style.opacity    = '';
     }
-    // reset dragged after click fires
-    setTimeout(() => { dragged = false; }, 0);
+    dragged = false;
   }
 
   card.addEventListener('touchstart', e => onStart(e.touches[0].clientX),    { passive: true });
@@ -756,7 +755,6 @@ function addSwipeHandlers(card, task) {
   card.addEventListener('mouseup',    onEnd);
   card.addEventListener('mouseleave', onEnd);
 
-  return { wasDragged: () => dragged };
 }
 
 async function completeTask(task) {
@@ -824,10 +822,8 @@ function render() {
       </div>
     `;
 
-    const swipe = addSwipeHandlers(card, task);
-    if (!isDone) card.addEventListener('click', () => {
-      if (!swipe.wasDragged()) completeTask(task);
-    });
+    addSwipeHandlers(card, task);
+    if (!isDone) card.addEventListener('click', () => completeTask(task));
     return card;
   }
 
