@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Ministry of Silly Tasks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Tokens ──────────────────────────────────────── */
+    :root {
+      --bg:        #f0e6d0;
+      --bg-deep:   #e8dcc0;
+      --card:      #faf5ea;
+      --card-alt:  #f5eedc;
+      --border:    #c8b48a;
+      --border-lt: #ddd0b0;
+      --text:      #2a1e0c;
+      --muted:     #8a7858;
+      --faint:     #b8a888;
+      --accent:    #7a3018;
+      --shadow:    rgba(42, 30, 12, 0.12);
+    }
+
+    /* ── Loading Screen ──────────────────────────────── */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: #000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #loading-screen.fade-out {
+      animation: screenFadeOut 0.8s ease forwards;
+    }
+
+    @keyframes screenFadeOut {
+      to { opacity: 0; pointer-events: none; }
+    }
+
+    #poster-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      animation: posterReveal 3.8s ease forwards;
+    }
+
+    @keyframes posterReveal {
+      0%   { opacity: 0; transform: scale(1.08); }
+      20%  { opacity: 1; }
+      100% { opacity: 1; transform: scale(1.0); }
+    }
+
+    #loading-vignette {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.85) 0%,
+        rgba(0,0,0,0.3)  35%,
+        rgba(0,0,0,0)    65%
+      );
+    }
+
+    #loading-text {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 2rem 3rem;
+      animation: textRise 1.2s 1.2s ease both;
+    }
+
+    @keyframes textRise {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #loading-tagline {
+      font-family: 'Lora', Georgia, serif;
+      font-style: italic;
+      font-size: clamp(1rem, 2.5vw, 1.35rem);
+      color: #f0e0c0;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+
+    #loading-sub {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 0.75rem;
+      color: rgba(240, 220, 180, 0.5);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      animation: textRise 1.2s 2s ease both;
+    }
+
+    /* ── App shell ───────────────────────────────────── */
+    #app {
+      display: none;
+      min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 20% 0%,  rgba(180,140,80,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(120,80,40,0.12) 0%, transparent 60%);
+      color: var(--text);
+      font-family: 'Lora', Georgia, serif;
+    }
+
+    #app.visible {
+      display: block;
+      animation: appReveal 0.6s ease both;
+    }
+
+    @keyframes appReveal {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ── Page layout ─────────────────────────────────── */
+    .page-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+    }
+
+    .ministry-label {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+
+    .header-date {
+      font-family: 'Lora', Georgia, serif;
+      font-style: italic;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    /* ── Stats bar ───────────────────────────────────── */
+    #stats-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--card);
+    }
+
+    .stat {
+      flex: 1;
+      padding: 0.85rem 1rem;
+      text-align: center;
+      border-right: 1px solid var(--border-lt);
+    }
+    .stat:last-child { border-right: none; }
+
+    .stat-number {
+      display: block;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+
+    .stat-label {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .stat-overdue  .stat-number { color: #9a1a0a; }
+    .stat-due      .stat-number { color: #8a6200; }
+    .stat-upcoming .stat-number { color: #3a6a2a; }
+    .stat-total    .stat-number { color: var(--muted); }
+
+    /* ── Task list ───────────────────────────────────── */
+    #task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    /* ── Task card ───────────────────────────────────── */
+    .task-card {
+      background: var(--card);
+      border: 1px solid var(--border-lt);
+      border-left: 4px solid var(--card-accent, var(--border));
+      border-radius: 6px;
+      padding: 0.85rem 1.1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.25s ease;
+      box-shadow: 0 1px 4px var(--shadow);
+      position: relative;
+    }
+
+    .task-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px var(--shadow);
+    }
+
+    .task-card:active { transform: scale(0.99); }
+
+    .task-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .check-icon {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      border: 1.5px solid var(--faint);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 9px;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .task-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--card-text, var(--text));
+      line-height: 1.2;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding-left: 1.55rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .task-due {
+      font-style: italic;
+    }
+
+    .meta-dot {
+      color: var(--faint);
+      font-size: 0.6rem;
+    }
+
+    .urgency-badge {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: var(--card-accent, var(--muted));
+    }
+
+    .cadence-label {
+      font-size: 0.68rem;
+      color: var(--faint);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Heat classes (light-mode vintage palette) ───── */
+
+    /* 7+ days overdue — deep crimson */
+    .heat-5 {
+      --card-accent: #b01010;
+      --card-text:   #7a0a0a;
+      background: #fdf2f0;
+      border-color: #e0c0b8;
+    }
+
+    /* 3–6 days overdue — burnt sienna */
+    .heat-4 {
+      --card-accent: #b84800;
+      --card-text:   #7a3000;
+      background: #fdf4ee;
+      border-color: #e0c8b0;
+    }
+
+    /* 1–2 days overdue — amber */
+    .heat-3 {
+      --card-accent: #c07800;
+      --card-text:   #7a4a00;
+      background: #fdf8e8;
+      border-color: #e0d0a0;
+    }
+
+    /* Due today — golden */
+    .heat-2 {
+      --card-accent: #a09000;
+      --card-text:   #6a5e00;
+      background: #fdfae0;
+      border-color: #ddd8a0;
+    }
+
+    /* Due in 1–3 days — olive */
+    .heat-1 {
+      --card-accent: #4a8020;
+      --card-text:   #2a5010;
+      background: #f4faf0;
+      border-color: #c0d8b0;
+    }
+
+    /* Due in 4–10 days — sage/teal */
+    .cool-1 {
+      --card-accent: #2a7a7a;
+      --card-text:   #1a4a4a;
+      background: #f0faf8;
+      border-color: #a8d8d0;
+    }
+
+    /* Due in 11+ days — navy */
+    .cool-2 {
+      --card-accent: #3a5a9a;
+      --card-text:   #2a3a6a;
+      background: #f0f2fa;
+      border-color: #b8c8e8;
+    }
+
+    /* Just completed — fades to neutral */
+    .just-done {
+      --card-accent: #b8a888;
+      --card-text:   #8a7858;
+      background: #f8f4ec;
+      border-color: var(--border-lt);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .just-done .task-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .just-done .check-icon {
+      background: var(--faint);
+      border-color: var(--faint);
+      color: var(--card);
+    }
+
+    /* ── Divider ─────────────────────────────────────── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1rem 0 0.4rem;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border-lt);
+    }
+
+    .divider-text {
+      font-family: 'Lora', Georgia, serif;
+      font-style: italic;
+      font-size: 0.72rem;
+      color: var(--faint);
+      white-space: nowrap;
+    }
+
+    /* ── Status / error ──────────────────────────────── */
+    #status-message {
+      text-align: center;
+      padding: 3rem 1rem;
+      font-style: italic;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── Footer ──────────────────────────────────────── */
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-lt);
+      text-align: center;
+    }
+
+    .footer-text {
+      font-family: 'Lora', Georgia, serif;
+      font-style: italic;
+      font-size: 0.75rem;
+      color: var(--faint);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Loading Screen ──────────────────────────────────── -->
+<div id="loading-screen">
+  <img id="poster-img" src="poster.png" alt="The Ministry of Silly Tasks" />
+  <div id="loading-vignette"></div>
+  <div id="loading-text">
+    <p id="loading-tagline">'Tis but a chore.</p>
+    <p id="loading-sub">Loading your duties&hellip;</p>
+  </div>
+</div>
+
+<!-- ── Main App ────────────────────────────────────────── -->
+<div id="app">
+  <div class="page-inner">
+
+    <header>
+      <p class="ministry-label">The Ministry of</p>
+      <h1>Silly Tasks</h1>
+      <p class="header-date" id="today-label"></p>
+    </header>
+
+    <div id="stats-bar">
+      <div class="stat stat-overdue">
+        <span class="stat-number" id="count-overdue">—</span>
+        <span class="stat-label">Overdue</span>
+      </div>
+      <div class="stat stat-due">
+        <span class="stat-number" id="count-due">—</span>
+        <span class="stat-label">Due Today</span>
+      </div>
+      <div class="stat stat-upcoming">
+        <span class="stat-number" id="count-upcoming">—</span>
+        <span class="stat-label">Upcoming</span>
+      </div>
+      <div class="stat stat-total">
+        <span class="stat-number" id="count-total">—</span>
+        <span class="stat-label">Total</span>
+      </div>
+    </div>
+
+    <div id="status-message">Summoning your duties&hellip;</div>
+    <div id="task-list"></div>
+
+    <footer>
+      <p class="footer-text">Produced under protest &middot; Directed by whoever remembered it needed doing.</p>
+    </footer>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── Supabase config ──────────────────────────────────────
+const SUPABASE_URL = 'https://segmrncvwpvwefhqkgbr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZ21ybmN2d3B2d2VmaHFrZ2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTY1MzMsImV4cCI6MjA5MTk3MjUzM30.o7Hjpb2Cp_EUxFKXFZbWl3dqwCXCQ2FOOWTEvwnpROM';
+const FILTER_TAG   = 'Cleaning';
+// ────────────────────────────────────────────────────────
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let tasks = [];
+const justCompleted = new Set();
+
+// ── Loading screen transition ────────────────────────────
+
+const LOADING_DURATION = 3400; // ms before transitioning to app
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('today-label').textContent = new Date().toLocaleDateString('en-CA', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  // Kick off data fetch immediately (parallel with animation)
+  const dataReady = loadTasks();
+
+  // After animation, wait for data then reveal app
+  setTimeout(async () => {
+    await dataReady;
+    const loading = document.getElementById('loading-screen');
+    loading.classList.add('fade-out');
+    setTimeout(() => {
+      loading.style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+    }, 800);
+  }, LOADING_DURATION);
+});
+
+// ── Date helpers ─────────────────────────────────────────
+
+function todayDate() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function parseDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function daysFromToday(str) {
+  return Math.round((parseDate(str) - todayDate()) / 86400000);
+}
+
+function addDays(n) {
+  const d = new Date(todayDate());
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatDate(str) {
+  return parseDate(str).toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+// ── Display helpers ───────────────────────────────────────
+
+function heatClass(days) {
+  if (days <= -7) return 'heat-5';
+  if (days <= -3) return 'heat-4';
+  if (days <= -1) return 'heat-3';
+  if (days === 0) return 'heat-2';
+  if (days <= 3)  return 'heat-1';
+  if (days <= 10) return 'cool-1';
+  return 'cool-2';
+}
+
+function urgencyLabel(days) {
+  if (days < -1)  return `${Math.abs(days)} days overdue`;
+  if (days === -1) return '1 day overdue';
+  if (days === 0)  return 'Due today';
+  if (days === 1)  return 'Tomorrow';
+  return `In ${days} days`;
+}
+
+function cadenceLabel(n) {
+  const map = { 7: 'Weekly', 14: 'Biweekly', 30: 'Monthly', 90: 'Quarterly', 365: 'Annual' };
+  return map[n] || (n ? `Every ${n}d` : '');
+}
+
+// ── Data ─────────────────────────────────────────────────
+
+async function loadTasks() {
+  const { data, error } = await db
+    .from('tasks')
+    .select('*')
+    .eq('tag', FILTER_TAG);
+
+  document.getElementById('status-message').style.display = 'none';
+
+  if (error) {
+    document.getElementById('status-message').style.display = 'block';
+    document.getElementById('status-message').textContent =
+      `The Ministry regrets an error: ${error.message}`;
+    return;
+  }
+
+  tasks = data;
+  render();
+}
+
+async function completeTask(task) {
+  justCompleted.add(task.id);
+  render();
+
+  const newDue = addDays(task.interval_days || 30);
+  const { error } = await db
+    .from('tasks')
+    .update({ due_date: newDue })
+    .eq('id', task.id);
+
+  if (!error) task.due_date = newDue;
+
+  setTimeout(() => {
+    justCompleted.delete(task.id);
+    render();
+  }, 750);
+}
+
+// ── Render ────────────────────────────────────────────────
+
+function render() {
+  const list = document.getElementById('task-list');
+  list.innerHTML = '';
+
+  const active = tasks
+    .filter(t => !justCompleted.has(t.id))
+    .sort((a, b) => daysFromToday(a.due_date) - daysFromToday(b.due_date));
+
+  const done = tasks.filter(t => justCompleted.has(t.id));
+
+  document.getElementById('count-overdue').textContent  = active.filter(t => daysFromToday(t.due_date) < 0).length;
+  document.getElementById('count-due').textContent      = active.filter(t => daysFromToday(t.due_date) === 0).length;
+  document.getElementById('count-upcoming').textContent = active.filter(t => daysFromToday(t.due_date) > 0).length;
+  document.getElementById('count-total').textContent    = tasks.length;
+
+  function makeCard(task, isDone) {
+    const days = daysFromToday(task.due_date);
+    const card = document.createElement('div');
+    card.className = 'task-card ' + (isDone ? 'just-done' : heatClass(days));
+
+    const cadence = cadenceLabel(task.interval_days);
+
+    card.innerHTML = `
+      <div class="task-title-row">
+        <span class="check-icon">${isDone ? '✓' : ''}</span>
+        <span class="task-title">${task.title}</span>
+      </div>
+      <div class="task-meta">
+        <span class="task-due">${formatDate(task.due_date)}</span>
+        <span class="meta-dot">·</span>
+        <span class="urgency-badge">${isDone ? 'Done — rolling forward' : urgencyLabel(days)}</span>
+        ${cadence ? `<span class="meta-dot">·</span><span class="cadence-label">${cadence}</span>` : ''}
+      </div>
+    `;
+
+    if (!isDone) card.addEventListener('click', () => completeTask(task));
+    return card;
+  }
+
+  active.forEach(t => list.appendChild(makeCard(t, false)));
+
+  if (done.length > 0) {
+    const divider = document.createElement('div');
+    divider.className = 'section-divider';
+    divider.innerHTML = `
+      <div class="divider-line"></div>
+      <span class="divider-text">filed with the Ministry</span>
+      <div class="divider-line"></div>
+    `;
+    list.appendChild(divider);
+    done.forEach(t => list.appendChild(makeCard(t, true)));
+  }
+}
+</script>
+</body>
+</html>
