@@ -456,58 +456,7 @@
 
     /* ── Dirt & stink effects ───────────────────────────── */
 
-    /* Card content must sit above the dirt layer */
-    .task-title-row,
-    .task-meta {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Dirt blobs rendered behind content via ::before */
-    .heat-3::before,
-    .heat-4::before,
-    .heat-5::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* 1 day overdue — a few fresh splats */
-    .heat-3::before {
-      background:
-        radial-gradient(ellipse 22px 13px at  8% 90%, rgba(92,57,20,0.35) 45%, transparent 72%),
-        radial-gradient(ellipse 15px  9px at 66% 94%, rgba(101,67,33,0.28) 45%, transparent 72%),
-        radial-gradient(ellipse 11px  7px at 90% 74%, rgba(80,50,15,0.22)  45%, transparent 72%);
-    }
-
-    /* 3+ days overdue — mud crawling up the sides */
-    .heat-4::before {
-      background:
-        radial-gradient(ellipse 32px 20px at  4% 88%, rgba(92,57,20,0.48)  45%, transparent 72%),
-        radial-gradient(ellipse 20px 12px at 62% 93%, rgba(101,67,33,0.40) 45%, transparent 72%),
-        radial-gradient(ellipse 16px 11px at 84% 70%, rgba(80,50,15,0.34)  45%, transparent 72%),
-        radial-gradient(ellipse 18px 11px at 36% 95%, rgba(92,57,20,0.36)  45%, transparent 72%),
-        radial-gradient(ellipse 10px 15px at  1% 52%, rgba(101,67,33,0.30) 45%, transparent 72%),
-        radial-gradient(ellipse 12px  7px at 80% 18%, rgba(80,50,15,0.22)  45%, transparent 72%);
-    }
-
-    /* 7+ days overdue — properly disgusting */
-    .heat-5::before {
-      background:
-        radial-gradient(ellipse 42px 26px at  2% 84%, rgba(92,57,20,0.58)  45%, transparent 72%),
-        radial-gradient(ellipse 28px 18px at 54% 91%, rgba(101,67,33,0.52) 45%, transparent 72%),
-        radial-gradient(ellipse 24px 15px at 84% 66%, rgba(80,50,15,0.46)  45%, transparent 72%),
-        radial-gradient(ellipse 26px 16px at 30% 94%, rgba(92,57,20,0.50)  45%, transparent 72%),
-        radial-gradient(ellipse 14px 22px at  0% 44%, rgba(101,67,33,0.44) 45%, transparent 72%),
-        radial-gradient(ellipse 20px 12px at 74% 10%, rgba(80,50,15,0.36)  45%, transparent 72%),
-        radial-gradient(ellipse 28px 17px at 92% 34%, rgba(92,57,20,0.40)  45%, transparent 72%),
-        radial-gradient(ellipse 34px 20px at 48%  2%, rgba(101,67,33,0.34) 45%, transparent 72%);
-    }
-
-    /* STINKY watermark stamp */
+/* STINKY watermark stamp */
     .stinky-stamp {
       position: absolute;
       top: 50%;
