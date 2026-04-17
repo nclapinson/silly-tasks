@@ -556,14 +556,18 @@
 const SUPABASE_URL = 'https://segmrncvwpvwefhqkgbr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZ21ybmN2d3B2d2VmaHFrZ2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTY1MzMsImV4cCI6MjA5MTk3MjUzM30.o7Hjpb2Cp_EUxFKXFZbWl3dqwCXCQ2FOOWTEvwnpROM';
 const LOADING_DURATION = 3600;
-const COMPLETE_DELAY   = 1800; // ms task shows as "done" before rolling forward
 // ────────────────────────────────────────────────────────
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let tasks      = [];
-let activeTag  = 'All';
-const justCompleted = new Set();
+let tasks     = [];
+let activeTag = 'All';
+
+// A task is "done" if it was completed AND is still more than 7 days from due.
+// Once it ticks within 7 days it automatically re-activates.
+function isDone(task) {
+  return !!task.last_completed_at && daysFromToday(task.due_date) > 7;
+}
 
 // ── Init ─────────────────────────────────────────────────
 
@@ -677,21 +681,20 @@ async function loadTasks() {
 }
 
 async function completeTask(task) {
-  justCompleted.add(task.id);
-  render();
-
   const newDue = addDays(task.interval_days || 30);
+  const now    = new Date().toISOString();
+
   const { error } = await db
     .from('tasks')
-    .update({ due_date: newDue })
+    .update({ due_date: newDue, last_completed_at: now })
     .eq('id', task.id);
 
-  if (!error) task.due_date = newDue;
+  if (!error) {
+    task.due_date          = newDue;
+    task.last_completed_at = now;
+  }
 
-  setTimeout(() => {
-    justCompleted.delete(task.id);
-    render();
-  }, COMPLETE_DELAY);
+  render();
 }
 
 // ── Render ────────────────────────────────────────────────
@@ -706,10 +709,13 @@ function render() {
     : tasks.filter(t => t.tag === activeTag);
 
   const active = visible
-    .filter(t => !justCompleted.has(t.id))
+    .filter(t => !isDone(t))
     .sort((a, b) => daysFromToday(a.due_date) - daysFromToday(b.due_date));
 
-  const done = visible.filter(t => justCompleted.has(t.id));
+  // Done tasks sorted by due date so the ones about to re-activate sit first
+  const done = visible
+    .filter(t => isDone(t))
+    .sort((a, b) => daysFromToday(a.due_date) - daysFromToday(b.due_date));
 
   // Stats reflect current filter
   document.getElementById('count-overdue').textContent  = active.filter(t => daysFromToday(t.due_date) < 0).length;
