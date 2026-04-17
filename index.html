@@ -435,7 +435,6 @@
       background: #f8f4ec;
       border-color: var(--border-lt);
       opacity: 0.5;
-      pointer-events: none;
       transform: rotate(0deg) !important;
     }
 
@@ -703,6 +702,57 @@ async function loadTasks() {
   render();
 }
 
+async function undoTask(task) {
+  const today = addDays(0);
+
+  const { error } = await db
+    .from('tasks')
+    .update({ due_date: today, last_completed_at: null })
+    .eq('id', task.id);
+
+  if (!error) {
+    task.due_date          = today;
+    task.last_completed_at = null;
+  }
+
+  render();
+}
+
+function addSwipeHandlers(card, task) {
+  let startX  = 0;
+  let deltaX  = 0;
+  let swiping = false;
+
+  function onStart(x) { startX = x; deltaX = 0; swiping = false; }
+
+  function onMove(x) {
+    deltaX = x - startX;
+    if (Math.abs(deltaX) > 8) {
+      swiping = true;
+      card.style.transition = 'none';
+      card.style.transform  = `translateX(${deltaX * 0.45}px)`;
+      card.style.opacity    = String(Math.max(0.25, 1 - Math.abs(deltaX) / 220));
+    }
+  }
+
+  function onEnd() {
+    card.style.transition = '';
+    card.style.transform  = '';
+    card.style.opacity    = '';
+    if (swiping && Math.abs(deltaX) > 80 && task.last_completed_at) undoTask(task);
+    swiping = false;
+  }
+
+  card.addEventListener('touchstart', e => onStart(e.touches[0].clientX),    { passive: true });
+  card.addEventListener('touchmove',  e => onMove(e.touches[0].clientX),     { passive: true });
+  card.addEventListener('touchend',   onEnd);
+
+  card.addEventListener('mousedown',  e => onStart(e.clientX));
+  card.addEventListener('mousemove',  e => { if (e.buttons === 1) onMove(e.clientX); });
+  card.addEventListener('mouseup',    onEnd);
+  card.addEventListener('mouseleave', onEnd);
+}
+
 async function completeTask(task) {
   const newDue = addDays(task.interval_days || 30);
   const now    = new Date().toISOString();
@@ -768,7 +818,11 @@ function render() {
       </div>
     `;
 
-    if (!isDone) card.addEventListener('click', () => completeTask(task));
+    addSwipeHandlers(card, task);
+    if (!isDone) card.addEventListener('click', e => {
+      if (Math.abs(e.clientX - (card._downX || e.clientX)) < 8) completeTask(task);
+    });
+    card.addEventListener('mousedown', e => { card._downX = e.clientX; });
     return card;
   }
 
