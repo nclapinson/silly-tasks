@@ -736,10 +736,17 @@ function addSwipeHandlers(card, task) {
   }
 
   function onEnd() {
-    card.style.transition = '';
-    card.style.transform  = '';
-    card.style.opacity    = '';
-    if (swiping && Math.abs(deltaX) > 80 && task.last_completed_at) undoTask(task);
+    if (swiping && Math.abs(deltaX) > 80 && task.last_completed_at) {
+      const dir = deltaX > 0 ? '115%' : '-115%';
+      card.style.transition = 'transform 0.28s ease, opacity 0.28s ease';
+      card.style.transform  = `translateX(${dir})`;
+      card.style.opacity    = '0';
+      setTimeout(() => undoTask(task), 280);
+    } else {
+      card.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+      card.style.transform  = '';
+      card.style.opacity    = '';
+    }
     swiping = false;
   }
 
