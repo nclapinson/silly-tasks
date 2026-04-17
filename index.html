@@ -715,16 +715,16 @@ async function undoTask(task) {
 }
 
 function addSwipeHandlers(card, task) {
-  let startX  = 0;
-  let deltaX  = 0;
-  let swiping = false;
+  let startX   = 0;
+  let deltaX   = 0;
+  let dragged  = false;
 
-  function onStart(x) { startX = x; deltaX = 0; swiping = false; }
+  function onStart(x) { startX = x; deltaX = 0; dragged = false; }
 
   function onMove(x) {
     deltaX = x - startX;
     if (Math.abs(deltaX) > 8) {
-      swiping = true;
+      dragged = true;
       card.style.transition = 'none';
       card.style.transform  = `translateX(${deltaX * 0.45}px)`;
       card.style.opacity    = String(Math.max(0.25, 1 - Math.abs(deltaX) / 220));
@@ -732,7 +732,7 @@ function addSwipeHandlers(card, task) {
   }
 
   function onEnd() {
-    if (swiping && Math.abs(deltaX) > 80 && task.last_completed_at) {
+    if (dragged && Math.abs(deltaX) > 80 && task.last_completed_at) {
       const dir = deltaX > 0 ? '115%' : '-115%';
       card.style.transition = 'transform 0.28s ease, opacity 0.28s ease';
       card.style.transform  = `translateX(${dir})`;
@@ -743,7 +743,8 @@ function addSwipeHandlers(card, task) {
       card.style.transform  = '';
       card.style.opacity    = '';
     }
-    swiping = false;
+    // reset dragged after click fires
+    setTimeout(() => { dragged = false; }, 0);
   }
 
   card.addEventListener('touchstart', e => onStart(e.touches[0].clientX),    { passive: true });
@@ -754,6 +755,8 @@ function addSwipeHandlers(card, task) {
   card.addEventListener('mousemove',  e => { if (e.buttons === 1) onMove(e.clientX); });
   card.addEventListener('mouseup',    onEnd);
   card.addEventListener('mouseleave', onEnd);
+
+  return { wasDragged: () => dragged };
 }
 
 async function completeTask(task) {
@@ -821,11 +824,10 @@ function render() {
       </div>
     `;
 
-    addSwipeHandlers(card, task);
-    if (!isDone) card.addEventListener('click', e => {
-      if (Math.abs(e.clientX - (card._downX || e.clientX)) < 8) completeTask(task);
+    const swipe = addSwipeHandlers(card, task);
+    if (!isDone) card.addEventListener('click', () => {
+      if (!swipe.wasDragged()) completeTask(task);
     });
-    card.addEventListener('mousedown', e => { card._downX = e.clientX; });
     return card;
   }
 
