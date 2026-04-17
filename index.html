@@ -458,23 +458,19 @@
 /* STINKY watermark stamp */
     .stinky-stamp {
       position: absolute;
-      top: 50%;
-      right: 7%;
-      transform: translateY(-50%) rotate(-8deg);
-      font-family: 'Playfair Display', serif;
-      font-weight: 900;
-      font-style: italic;
-      font-size: 1.55rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      top: 0.3rem;
+      right: 0.4rem;
+      width: clamp(40px, 12%, 58px);
+      transform: rotate(-8deg);
+      mix-blend-mode: multiply;
       pointer-events: none;
       user-select: none;
-      z-index: 0;
+      z-index: 1;
     }
 
-    .heat-3 .stinky-stamp { color: rgba(92,57,20,0.11); }
-    .heat-4 .stinky-stamp { color: rgba(92,57,20,0.20); }
-    .heat-5 .stinky-stamp { color: rgba(92,57,20,0.34); }
+    .heat-3 .stinky-stamp { opacity: 0.25; }
+    .heat-4 .stinky-stamp { opacity: 0.45; }
+    .heat-5 .stinky-stamp { opacity: 0.70; }
 
     /* ── Divider ─────────────────────────────────────────── */
     .section-divider {
@@ -812,7 +808,7 @@ function render() {
     const cadence = cadenceLabel(task.interval_days);
 
     card.innerHTML = `
-      ${days < 0 && !isDone ? '<span class="stinky-stamp">Stinky</span>' : ''}
+      ${days < 0 && !isDone ? '<img class="stinky-stamp" src="stinky.png" alt="">' : ''}
       <div class="task-title-row">
         <span class="check-icon">${isDone ? '✓' : ''}</span>
         <span class="task-title">${task.title}</span>
