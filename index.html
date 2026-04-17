@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Ministry of Silly Tasks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f0e6d0;
+      --card:      #faf5ea;
+      --border:    #c8b48a;
+      --border-lt: #ddd0b0;
+      --text:      #2a1e0c;
+      --muted:     #8a7858;
+      --faint:     #b8a888;
+      --accent:    #7a3018;
+      --shadow:    rgba(42, 30, 12, 0.12);
+    }
+
+    /* ── Loading Screen ──────────────────────────────────── */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: #000;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #loading-screen.fade-out {
+      animation: screenFadeOut 0.9s ease forwards;
+    }
+
+    @keyframes screenFadeOut {
+      to { opacity: 0; pointer-events: none; }
+    }
+
+    #poster-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      animation: posterReveal 4s ease forwards;
+    }
+
+    @keyframes posterReveal {
+      0%   { opacity: 0; transform: scale(1.08); }
+      18%  { opacity: 1; }
+      100% { opacity: 1; transform: scale(1.0); }
+    }
+
+    #loading-vignette {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.88) 0%,
+        rgba(0,0,0,0.25) 40%,
+        rgba(0,0,0,0)    65%
+      );
+    }
+
+    #loading-text {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 2rem 3.5rem;
+      animation: textRise 1.3s 1.4s ease both;
+    }
+
+    @keyframes textRise {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #loading-tagline {
+      font-family: 'Lora', Georgia, serif;
+      font-style: italic;
+      font-size: clamp(1.05rem, 2.5vw, 1.4rem);
+      color: #f0e0c0;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+
+    #loading-sub {
+      font-family: 'Lora', Georgia, serif;
+      font-size: 0.72rem;
+      color: rgba(240, 220, 180, 0.45);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      animation: textRise 1.2s 2.2s ease both;
+    }
+
+    /* ── App ─────────────────────────────────────────────── */
+    #app {
+      display: none;
+      min-height: 100vh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 18% 0%,   rgba(190,145,75,0.2)  0%, transparent 55%),
+        radial-gradient(ellipse at 82% 100%,  rgba(120,75,35,0.14)  0%, transparent 55%);
+      color: var(--text);
+      font-family: 'Lora', Georgia, serif;
+    }
+
+    #app.visible {
+      display: block;
+      animation: appReveal 0.7s ease both;
+    }
+
+    @keyframes appReveal {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    /* ── Header ──────────────────────────────────────────── */
+    header {
+      margin-bottom: 1.75rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+    }
+
+    .ministry-label {
+      font-family: 'Lora', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.7rem, 4vw, 2.5rem);
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1.05;
+      margin-bottom: 0.4rem;
+    }
+
+    .header-date {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.87rem;
+      color: var(--muted);
+    }
+
+    /* ── Stats bar ───────────────────────────────────────── */
+    #stats-bar {
+      display: flex;
+      margin-bottom: 1.5rem;
+      border: 1.5px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      background: var(--card);
+      box-shadow: 3px 3px 0 rgba(42,30,12,0.08);
+    }
+
+    .stat {
+      flex: 1;
+      padding: 0.85rem 0.75rem;
+      text-align: center;
+      border-right: 1px solid var(--border-lt);
+    }
+    .stat:last-child { border-right: none; }
+
+    .stat-number {
+      display: block;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+
+    .stat-label {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .stat-overdue  .stat-number { color: #9a1a0a; }
+    .stat-due      .stat-number { color: #8a6200; }
+    .stat-upcoming .stat-number { color: #3a6a2a; }
+    .stat-total    .stat-number { color: var(--muted); }
+
+    /* ── Tag filters ─────────────────────────────────────── */
+    #tag-filters {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .tag-btn {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.78rem;
+      padding: 0.28rem 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 2px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .tag-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(122,48,24,0.05);
+    }
+
+    .tag-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #faf5ea;
+    }
+
+    /* ── Task list ───────────────────────────────────────── */
+    #task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    /* ── Task card ───────────────────────────────────────── */
+    .task-card {
+      background: var(--card);
+      border: 1.5px solid var(--border-lt);
+      border-left: 5px solid var(--card-accent, var(--border));
+      border-top: 2px solid var(--card-accent, var(--border-lt));
+      border-radius: 3px;
+      padding: 0.9rem 1.15rem 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      /* Coloured lift shadow + depth shadow */
+      box-shadow:
+        3px 4px 0 0 var(--card-shadow, rgba(42,30,12,0.08)),
+        0 6px 18px rgba(42,30,12,0.09);
+      /* Slight alternating tilt — overridden on hover */
+      transform: rotate(var(--tilt, 0deg));
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.4s ease;
+    }
+
+    /* Subtle paper grain overlay */
+    .task-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      mix-blend-mode: multiply;
+    }
+
+    /* Alternating tilts */
+    .task-card:nth-child(3n+1) { --tilt:  0.35deg; }
+    .task-card:nth-child(3n+2) { --tilt: -0.25deg; }
+    .task-card:nth-child(3n+3) { --tilt:  0.15deg; }
+
+    .task-card:hover {
+      transform: rotate(0deg) translateY(-2px);
+      box-shadow:
+        4px 6px 0 0 var(--card-shadow, rgba(42,30,12,0.1)),
+        0 10px 24px rgba(42,30,12,0.13);
+    }
+
+    .task-card:active {
+      transform: rotate(0deg) scale(0.99);
+    }
+
+    /* Card entrance */
+    @keyframes cardIn {
+      from { opacity: 0; transform: rotate(var(--tilt, 0deg)) translateY(10px); }
+      to   { opacity: 1; transform: rotate(var(--tilt, 0deg)) translateY(0); }
+    }
+
+    .card-entering {
+      animation: cardIn 0.3s ease both;
+    }
+
+    .task-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .check-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1.5px solid var(--faint);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 8px;
+      color: var(--card);
+      transition: all 0.2s;
+    }
+
+    .task-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.97rem;
+      font-weight: 700;
+      color: var(--card-text, var(--text));
+      line-height: 1.2;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding-left: 1.6rem;
+      font-size: 0.74rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .task-due { font-style: italic; }
+
+    .meta-dot {
+      color: var(--faint);
+      font-size: 0.55rem;
+    }
+
+    /* Urgency badge styled as a small stamp */
+    .urgency-badge {
+      display: inline-block;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 0.67rem;
+      font-weight: 700;
+      color: var(--card-accent, var(--muted));
+      border: 1.5px solid var(--card-accent, var(--faint));
+      border-radius: 2px;
+      padding: 0.05rem 0.32rem;
+      transform: rotate(-1.2deg);
+      letter-spacing: 0.02em;
+      line-height: 1.4;
+    }
+
+    .cadence-label {
+      font-size: 0.65rem;
+      color: var(--faint);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+
+    /* ── Heat classes ────────────────────────────────────── */
+
+    .heat-5 {
+      --card-accent:  #b01010;
+      --card-text:    #7a0a0a;
+      --card-shadow:  rgba(176,16,16,0.22);
+      background: #fdf2f0;
+      border-color: #dbb8b0;
+    }
+
+    .heat-4 {
+      --card-accent:  #b84800;
+      --card-text:    #7a3000;
+      --card-shadow:  rgba(184,72,0,0.22);
+      background: #fdf4ee;
+      border-color: #ddc8a8;
+    }
+
+    .heat-3 {
+      --card-accent:  #c07800;
+      --card-text:    #7a4a00;
+      --card-shadow:  rgba(192,120,0,0.22);
+      background: #fdf8e8;
+      border-color: #ddd098;
+    }
+
+    .heat-2 {
+      --card-accent:  #a09000;
+      --card-text:    #6a5e00;
+      --card-shadow:  rgba(160,144,0,0.22);
+      background: #fdfae0;
+      border-color: #dad898;
+    }
+
+    .heat-1 {
+      --card-accent:  #4a8020;
+      --card-text:    #2a5010;
+      --card-shadow:  rgba(74,128,32,0.2);
+      background: #f4faf0;
+      border-color: #bcd8a8;
+    }
+
+    .cool-1 {
+      --card-accent:  #2a7a7a;
+      --card-text:    #1a4a4a;
+      --card-shadow:  rgba(42,122,122,0.2);
+      background: #f0faf8;
+      border-color: #a8d8d0;
+    }
+
+    .cool-2 {
+      --card-accent:  #3a5a9a;
+      --card-text:    #2a3a6a;
+      --card-shadow:  rgba(58,90,154,0.2);
+      background: #f0f2fa;
+      border-color: #b8c8e8;
+    }
+
+    /* Just completed */
+    .just-done {
+      --card-accent:  #b8a888;
+      --card-text:    #8a7858;
+      --card-shadow:  rgba(42,30,12,0.06);
+      background: #f8f4ec;
+      border-color: var(--border-lt);
+      opacity: 0.5;
+      pointer-events: none;
+      transform: rotate(0deg) !important;
+    }
+
+    .just-done .task-title {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .just-done .check-icon {
+      background: var(--faint);
+      border-color: var(--faint);
+    }
+
+    .just-done .urgency-badge {
+      border-color: var(--faint);
+      color: var(--faint);
+    }
+
+    /* ── Divider ─────────────────────────────────────────── */
+    .section-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.2rem 0 0.5rem;
+    }
+
+    .divider-line { flex: 1; height: 1px; background: var(--border-lt); }
+
+    .divider-text {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.7rem;
+      color: var(--faint);
+      white-space: nowrap;
+    }
+
+    /* ── Status / error ──────────────────────────────────── */
+    #status-message {
+      text-align: center;
+      padding: 3rem 1rem;
+      font-style: italic;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-lt);
+      text-align: center;
+    }
+
+    .footer-text {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.73rem;
+      color: var(--faint);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Loading Screen ────────────────────────────────────── -->
+<div id="loading-screen">
+  <img id="poster-img" src="poster.png" alt="The Ministry of Silly Tasks" />
+  <div id="loading-vignette"></div>
+  <div id="loading-text">
+    <p id="loading-tagline">'Tis but a chore.</p>
+    <p id="loading-sub">Loading your duties&hellip;</p>
+  </div>
+</div>
+
+<!-- ── Main App ──────────────────────────────────────────── -->
+<div id="app">
+  <div class="page-inner">
+
+    <header>
+      <p class="ministry-label">The Ministry of</p>
+      <h1>Silly Tasks</h1>
+      <p class="header-date" id="today-label"></p>
+    </header>
+
+    <div id="stats-bar">
+      <div class="stat stat-overdue">
+        <span class="stat-number" id="count-overdue">—</span>
+        <span class="stat-label">Overdue</span>
+      </div>
+      <div class="stat stat-due">
+        <span class="stat-number" id="count-due">—</span>
+        <span class="stat-label">Due Today</span>
+      </div>
+      <div class="stat stat-upcoming">
+        <span class="stat-number" id="count-upcoming">—</span>
+        <span class="stat-label">Upcoming</span>
+      </div>
+      <div class="stat stat-total">
+        <span class="stat-number" id="count-total">—</span>
+        <span class="stat-label">Total</span>
+      </div>
+    </div>
+
+    <div id="tag-filters"></div>
+
+    <div id="status-message">Summoning your duties&hellip;</div>
+    <div id="task-list"></div>
+
+    <footer>
+      <p class="footer-text">Produced under protest &middot; Directed by whoever remembered it needed doing.</p>
+    </footer>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── Config ───────────────────────────────────────────────
+const SUPABASE_URL = 'https://segmrncvwpvwefhqkgbr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlZ21ybmN2d3B2d2VmaHFrZ2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzOTY1MzMsImV4cCI6MjA5MTk3MjUzM30.o7Hjpb2Cp_EUxFKXFZbWl3dqwCXCQ2FOOWTEvwnpROM';
+const LOADING_DURATION = 3600;
+// ────────────────────────────────────────────────────────
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let tasks     = [];
+let activeTag = 'All';
+
+// A task is "done" if it was completed AND is still more than 7 days from due.
+// Once it ticks within 7 days it automatically re-activates.
+function isDone(task) {
+  return !!task.last_completed_at && daysFromToday(task.due_date) > 7;
+}
+
+// ── Init ─────────────────────────────────────────────────
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('today-label').textContent = new Date().toLocaleDateString('en-CA', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  const dataReady = loadTasks();
+
+  setTimeout(async () => {
+    await dataReady;
+    const screen = document.getElementById('loading-screen');
+    screen.classList.add('fade-out');
+    setTimeout(() => {
+      screen.style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+    }, 900);
+  }, LOADING_DURATION);
+});
+
+// ── Date helpers ─────────────────────────────────────────
+
+function todayDate() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function parseDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function daysFromToday(str) {
+  return Math.round((parseDate(str) - todayDate()) / 86400000);
+}
+
+function addDays(n) {
+  const d = new Date(todayDate());
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatDate(str) {
+  return parseDate(str).toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+// ── Display helpers ───────────────────────────────────────
+
+function heatClass(days) {
+  if (days <= -7) return 'heat-5';
+  if (days <= -3) return 'heat-4';
+  if (days <= -1) return 'heat-3';
+  if (days === 0) return 'heat-2';
+  if (days <= 3)  return 'heat-1';
+  if (days <= 10) return 'cool-1';
+  return 'cool-2';
+}
+
+function urgencyLabel(days) {
+  if (days < -1)   return `${Math.abs(days)} days overdue`;
+  if (days === -1)  return '1 day overdue';
+  if (days === 0)   return 'Due today';
+  if (days === 1)   return 'Tomorrow';
+  return `In ${days} days`;
+}
+
+function cadenceLabel(n) {
+  const map = { 7: 'Weekly', 14: 'Biweekly', 30: 'Monthly', 90: 'Quarterly', 365: 'Annual' };
+  return map[n] || (n ? `Every ${n}d` : '');
+}
+
+// ── Tag filter UI ─────────────────────────────────────────
+
+function buildTagFilters() {
+  const tags = ['All', ...new Set(tasks.map(t => t.tag).filter(Boolean).sort())];
+  const container = document.getElementById('tag-filters');
+  container.innerHTML = '';
+
+  tags.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'tag-btn' + (tag === activeTag ? ' active' : '');
+    btn.textContent = tag;
+    btn.addEventListener('click', () => {
+      activeTag = tag;
+      buildTagFilters();
+      render();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ── Data ─────────────────────────────────────────────────
+
+async function loadTasks() {
+  // Fetch all tasks — tag filtering is done client-side
+  const { data, error } = await db.from('tasks').select('*');
+
+  document.getElementById('status-message').style.display = 'none';
+
+  if (error) {
+    document.getElementById('status-message').style.display = 'block';
+    document.getElementById('status-message').textContent =
+      `The Ministry regrets an error: ${error.message}`;
+    return;
+  }
+
+  tasks = data;
+  buildTagFilters();
+  render();
+}
+
+async function completeTask(task) {
+  const newDue = addDays(task.interval_days || 30);
+  const now    = new Date().toISOString();
+
+  const { error } = await db
+    .from('tasks')
+    .update({ due_date: newDue, last_completed_at: now })
+    .eq('id', task.id);
+
+  if (!error) {
+    task.due_date          = newDue;
+    task.last_completed_at = now;
+  }
+
+  render();
+}
+
+// ── Render ────────────────────────────────────────────────
+
+function render() {
+  const list = document.getElementById('task-list');
+  list.innerHTML = '';
+
+  // Apply tag filter
+  const visible = activeTag === 'All'
+    ? tasks
+    : tasks.filter(t => t.tag === activeTag);
+
+  const active = visible
+    .filter(t => !isDone(t))
+    .sort((a, b) => daysFromToday(a.due_date) - daysFromToday(b.due_date));
+
+  // Done tasks sorted by due date so the ones about to re-activate sit first
+  const done = visible
+    .filter(t => isDone(t))
+    .sort((a, b) => daysFromToday(a.due_date) - daysFromToday(b.due_date));
+
+  // Stats reflect current filter
+  document.getElementById('count-overdue').textContent  = active.filter(t => daysFromToday(t.due_date) < 0).length;
+  document.getElementById('count-due').textContent      = active.filter(t => daysFromToday(t.due_date) === 0).length;
+  document.getElementById('count-upcoming').textContent = active.filter(t => daysFromToday(t.due_date) > 0).length;
+  document.getElementById('count-total').textContent    = visible.length;
+
+  function makeCard(task, isDone, index) {
+    const days  = daysFromToday(task.due_date);
+    const card  = document.createElement('div');
+    card.className = 'task-card card-entering ' + (isDone ? 'just-done' : heatClass(days));
+    card.style.animationDelay = `${index * 35}ms`;
+
+    const cadence = cadenceLabel(task.interval_days);
+
+    card.innerHTML = `
+      <div class="task-title-row">
+        <span class="check-icon">${isDone ? '✓' : ''}</span>
+        <span class="task-title">${task.title}</span>
+      </div>
+      <div class="task-meta">
+        <span class="task-due">${formatDate(task.due_date)}</span>
+        <span class="meta-dot">·</span>
+        <span class="urgency-badge">${isDone ? 'Filed ✓' : urgencyLabel(days)}</span>
+        ${cadence ? `<span class="meta-dot">·</span><span class="cadence-label">${cadence}</span>` : ''}
+      </div>
+    `;
+
+    if (!isDone) card.addEventListener('click', () => completeTask(task));
+    return card;
+  }
+
+  active.forEach((t, i) => list.appendChild(makeCard(t, false, i)));
+
+  if (done.length > 0) {
+    const divider = document.createElement('div');
+    divider.className = 'section-divider';
+    divider.innerHTML = `
+      <div class="divider-line"></div>
+      <span class="divider-text">filed with the Ministry</span>
+      <div class="divider-line"></div>
+    `;
+    list.appendChild(divider);
+    done.forEach((t, i) => list.appendChild(makeCard(t, true, active.length + i)));
+  }
+}
+</script>
+</body>
+</html>
