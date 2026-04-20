@@ -1545,15 +1545,18 @@ function addSwipeHandlers(card, wrapper, task) {
     }
   }
 
+  // Prevent browser drag-and-drop on desktop from cancelling pointer events
+  card.addEventListener('dragstart', e => e.preventDefault());
+
   card.addEventListener('pointerdown', e => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
     if (activePtrId !== null) return;
     activePtrId = e.pointerId;
-    startX  = e.clientX;
-    startY  = e.clientY;
+    startX    = e.clientX;
+    startY    = e.clientY;
     dragging  = false;
     dirLocked = null;
     card.style.transition = 'none';
-    card.setPointerCapture(e.pointerId);
   });
 
   card.addEventListener('pointermove', e => {
@@ -1562,14 +1565,15 @@ function addSwipeHandlers(card, wrapper, task) {
     const dy = e.clientY - startY;
 
     if (!dirLocked) {
-      if (Math.abs(dx) > 7 || Math.abs(dy) > 7) {
-        dirLocked = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
-        if (dirLocked === 'h') {
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        if (Math.abs(dx) >= Math.abs(dy)) {
+          dirLocked = 'h';
           card.setPointerCapture(e.pointerId);
           dragging = true;
+          e.preventDefault();
         } else {
-          // Vertical — release capture and let scroll happen
-          card.releasePointerCapture(e.pointerId);
+          // Vertical — let browser scroll
+          dirLocked   = 'v';
           activePtrId = null;
           card.style.transition = 'transform 0.22s ease';
           snapTo(snapState, false);
@@ -1579,17 +1583,17 @@ function addSwipeHandlers(card, wrapper, task) {
     }
 
     if (dirLocked !== 'h') return;
+    e.preventDefault();
 
-    const baseX  = snapState === 'delete' ? SNAP_DIST : snapState === 'edit' ? -SNAP_DIST : 0;
-    const newX   = baseX + dx;
+    const baseX   = snapState === 'delete' ? SNAP_DIST : snapState === 'edit' ? -SNAP_DIST : 0;
+    const newX    = baseX + dx;
     const clamped = Math.max(-SNAP_DIST * 1.3, Math.min(SNAP_DIST * 1.3, newX));
     card.style.transform = `translateX(${clamped}px)`;
 
-    // Show action hint as card moves
-    if (clamped > 8)  { deleteAction.classList.add('visible'); editAction.classList.remove('visible'); }
+    if (clamped > 8)       { deleteAction.classList.add('visible'); editAction.classList.remove('visible'); }
     else if (clamped < -8) { editAction.classList.add('visible'); deleteAction.classList.remove('visible'); }
-    else { deleteAction.classList.remove('visible'); editAction.classList.remove('visible'); }
-  });
+    else                   { deleteAction.classList.remove('visible'); editAction.classList.remove('visible'); }
+  }, { passive: false });
 
   function onRelease(clientX) {
     if (activePtrId === null) return;
