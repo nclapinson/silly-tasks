@@ -10,6 +10,66 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── Wide-screen split background ───────────────────── */
+    #bg-wide {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+
+    @media (min-width: 960px) {
+      #bg-wide {
+        display: flex;
+        align-items: stretch;
+      }
+
+      /* Sharp poster panels flanking the content column */
+      .bg-side {
+        flex: 1;
+        background: url('poster.png') center / cover no-repeat;
+        position: relative;
+      }
+
+      /* Fade each side toward the center so it blends into the blur */
+      #bg-side-left::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%);
+      }
+
+      #bg-side-right::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to left, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%);
+      }
+
+      /* Blurry center column — sits behind the content */
+      #bg-center {
+        width: 760px;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Extend the image beyond the bounds to prevent blur edge halos */
+      #bg-center::before {
+        content: '';
+        position: absolute;
+        inset: -80px;
+        background: url('poster.png') center / cover no-repeat;
+        filter: blur(55px) brightness(0.5) saturate(1.2);
+      }
+
+      /* Make the app background transparent so the blur shows through */
+      #app {
+        background-color: transparent !important;
+        background-image: none !important;
+      }
+    }
+
     :root {
       --bg:        #f0e6d0;
       --card:      #faf5ea;
@@ -1176,6 +1236,13 @@
   </style>
 </head>
 <body>
+
+<!-- ── Wide screen background ────────────────────────────── -->
+<div id="bg-wide" aria-hidden="true">
+  <div class="bg-side" id="bg-side-left"></div>
+  <div id="bg-center"></div>
+  <div class="bg-side" id="bg-side-right"></div>
+</div>
 
 <!-- ── Loading Screen ────────────────────────────────────── -->
 <div id="loading-screen">
