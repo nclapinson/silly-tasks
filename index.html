@@ -1113,6 +1113,28 @@
     .reset-confirm:hover { background: #6a2410; }
     .reset-confirm:active { transform: scale(0.97) translateY(1px); }
 
+    /* Secondary amend button used in FC-1 and PCA-1 sheets */
+    .sheet-amend-btn {
+      display: block;
+      width: 100%;
+      margin-top: 0.75rem;
+      padding: 0.58rem 1rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .sheet-amend-btn:hover {
+      border-color: var(--accent);
+      background: rgba(122,48,24,0.04);
+    }
+
     /* Shared non-focal delete link used in FC-1 and PCA-1 sheets */
     .sheet-delete-link {
       display: block;
@@ -1284,6 +1306,7 @@
     <button type="button" class="reset-cancel" id="complete-cancel">Abandon Post</button>
     <button type="button" class="reset-confirm" id="complete-confirm">File with the Ministry</button>
   </div>
+  <button type="button" class="sheet-amend-btn" id="complete-amend">Amend Details</button>
   <button type="button" class="sheet-delete-link" id="complete-delete">Strike from Record</button>
 </div>
 
@@ -1299,6 +1322,7 @@
     <button type="button" class="reset-cancel" id="reset-cancel">Abandon Post</button>
     <button type="button" class="reset-confirm" id="reset-confirm">Amend the Record</button>
   </div>
+  <button type="button" class="sheet-amend-btn" id="reset-amend">Amend Details</button>
   <button type="button" class="sheet-delete-link" id="reset-delete">Strike from Record</button>
 </div>
 
@@ -1402,6 +1426,10 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('complete-confirm').addEventListener('click', () => {
     if (completeTarget) { completeTask(completeTarget); closeCompleteSheet(); }
   });
+  document.getElementById('complete-amend').addEventListener('click', () => {
+    const t = completeTarget; closeCompleteSheet();
+    setTimeout(() => openSheet('edit', t), 80);
+  });
   document.getElementById('complete-delete').addEventListener('click', () => {
     const t = completeTarget; closeCompleteSheet();
     setTimeout(() => openDeleteSheet(t), 80);
@@ -1411,6 +1439,10 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reset-cancel').addEventListener('click', closeResetSheet);
   document.getElementById('reset-confirm').addEventListener('click', () => {
     if (resetTarget) { completeTask(resetTarget); closeResetSheet(); }
+  });
+  document.getElementById('reset-amend').addEventListener('click', () => {
+    const t = resetTarget; closeResetSheet();
+    setTimeout(() => openSheet('edit', t), 80);
   });
   document.getElementById('reset-delete').addEventListener('click', () => {
     const t = resetTarget; closeResetSheet();
