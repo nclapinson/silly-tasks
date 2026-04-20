@@ -472,6 +472,20 @@
       letter-spacing: 0.09em;
     }
 
+    .flag-badge {
+      display: inline-block;
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.63rem;
+      color: #7a5a00;
+      background: #fdf4c0;
+      border: 1px solid #c8a830;
+      border-radius: 2px;
+      padding: 0.05rem 0.38rem;
+      letter-spacing: 0.02em;
+      line-height: 1.4;
+    }
+
     /* ── Heat classes ────────────────────────────────────── */
 
     .heat-5 {
@@ -1366,6 +1380,7 @@
     <button type="button" class="reset-confirm" id="complete-confirm">File with the Ministry</button>
   </div>
   <button type="button" class="sheet-amend-btn" id="complete-amend">Amend Details</button>
+  <button type="button" class="sheet-delete-link" id="complete-clear-flag" style="display:none;color:var(--muted);">⚑ Not a duplicate — clear review flag</button>
   <button type="button" class="sheet-delete-link" id="complete-delete">Strike from Record</button>
 </div>
 
@@ -1382,6 +1397,7 @@
     <button type="button" class="reset-confirm" id="reset-confirm">Amend the Record</button>
   </div>
   <button type="button" class="sheet-amend-btn" id="reset-amend">Amend Details</button>
+  <button type="button" class="sheet-delete-link" id="reset-clear-flag" style="display:none;color:var(--muted);">⚑ Not a duplicate — clear review flag</button>
   <button type="button" class="sheet-delete-link" id="reset-delete">Strike from Record</button>
 </div>
 
@@ -1489,6 +1505,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const t = completeTarget; closeCompleteSheet();
     setTimeout(() => openSheet('edit', t), 80);
   });
+  document.getElementById('complete-clear-flag').addEventListener('click', () => {
+    const t = completeTarget; closeCompleteSheet(); clearFlag(t);
+  });
   document.getElementById('complete-delete').addEventListener('click', () => {
     const t = completeTarget; closeCompleteSheet();
     setTimeout(() => openDeleteSheet(t), 80);
@@ -1502,6 +1521,9 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reset-amend').addEventListener('click', () => {
     const t = resetTarget; closeResetSheet();
     setTimeout(() => openSheet('edit', t), 80);
+  });
+  document.getElementById('reset-clear-flag').addEventListener('click', () => {
+    const t = resetTarget; closeResetSheet(); clearFlag(t);
   });
   document.getElementById('reset-delete').addEventListener('click', () => {
     const t = resetTarget; closeResetSheet();
@@ -1759,11 +1781,21 @@ function formatLong(dateStr) {
   });
 }
 
+async function clearFlag(task) {
+  const { error } = await db.from('tasks').update({ flagged: null }).eq('id', task.id);
+  if (!error) {
+    task.flagged = null;
+    render();
+    showToast('Review flag cleared.');
+  }
+}
+
 function openCompleteSheet(task) {
   completeTarget = task;
   const newDue = addDays(task.interval_days || 30);
   document.getElementById('complete-body').innerHTML =
     `Filing <strong>${task.title}</strong> will set the next reckoning to <strong>${formatLong(newDue)}</strong>.`;
+  document.getElementById('complete-clear-flag').style.display = task.flagged ? 'block' : 'none';
   document.getElementById('sheet-backdrop').classList.add('visible');
   document.getElementById('complete-sheet').classList.add('open');
 }
@@ -1779,6 +1811,7 @@ function openResetSheet(task) {
   const newDue = addDays(task.interval_days || 30);
   document.getElementById('reset-body').innerHTML =
     `This duty was recently filed. Re-filing <strong>${task.title}</strong> will reset the next reckoning to <strong>${formatLong(newDue)}</strong>.`;
+  document.getElementById('reset-clear-flag').style.display = task.flagged ? 'block' : 'none';
   document.getElementById('sheet-backdrop').classList.add('visible');
   document.getElementById('reset-sheet').classList.add('open');
 }
@@ -2003,6 +2036,7 @@ function render() {
         <span class="meta-dot">·</span>
         <span class="urgency-badge">${taskIsDone ? 'Filed ✓' : urgencyLabel(days)}</span>
         ${cadence ? `<span class="meta-dot">·</span><span class="cadence-label">${cadence}</span>` : ''}
+        ${task.flagged ? `<span class="meta-dot">·</span><span class="flag-badge">⚑ Review</span>` : ''}
       </div>
     `;
 
