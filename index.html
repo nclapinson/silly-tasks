@@ -16,37 +16,22 @@
       position: fixed;
       inset: 0;
       z-index: -1;
+      background: #1a140a;
     }
 
     @media (min-width: 960px) {
-      #bg-wide {
-        display: flex;
-        align-items: stretch;
-      }
+      #bg-wide { display: flex; align-items: stretch; }
 
-      /* Sharp poster panels flanking the content column */
+      /* Left and right: full poster height, each anchored to its edge */
       .bg-side {
         flex: 1;
-        background: url('poster.png') center / cover no-repeat;
-        position: relative;
+        background: url('poster.png') center / auto 100% no-repeat;
       }
 
-      /* Fade each side toward the center so it blends into the blur */
-      #bg-side-left::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%);
-      }
+      #bg-side-left  { background-position: left center; }
+      #bg-side-right { background-position: right center; }
 
-      #bg-side-right::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to left, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 100%);
-      }
-
-      /* Blurry center column — sits behind the content */
+      /* Center column: blurry image base + warm light overlay */
       #bg-center {
         width: 760px;
         flex-shrink: 0;
@@ -54,16 +39,23 @@
         overflow: hidden;
       }
 
-      /* Extend the image beyond the bounds to prevent blur edge halos */
+      /* Blurry image — extended to prevent halo edges */
       #bg-center::before {
         content: '';
         position: absolute;
         inset: -80px;
-        background: url('poster.png') center / cover no-repeat;
-        filter: blur(55px) brightness(0.5) saturate(1.2);
+        background: url('poster.png') center / auto 110% no-repeat;
+        filter: blur(48px) saturate(0.7) brightness(1.1);
       }
 
-      /* Make the app background transparent so the blur shows through */
+      /* Warm parchment wash over the blur */
+      #bg-center::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(165, 138, 82, 0.78);
+      }
+
       #app {
         background-color: transparent !important;
         background-image: none !important;
