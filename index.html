@@ -125,7 +125,7 @@
     .page-inner {
       max-width: 760px;
       margin: 0 auto;
-      padding: 2.5rem 1.25rem 4rem;
+      padding: 2.5rem 1.25rem 6rem;
     }
 
     /* ── Header ──────────────────────────────────────────── */
@@ -242,6 +242,58 @@
       gap: 0.6rem;
     }
 
+    /* ── Card wrapper & swipe actions ────────────────────── */
+    .card-wrapper {
+      position: relative;
+      border-radius: 3px;
+    }
+
+    .card-action {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 92px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      z-index: 1;
+      gap: 0.3rem;
+      pointer-events: none;
+    }
+
+    .card-action.visible {
+      pointer-events: auto;
+    }
+
+    .action-delete {
+      left: 0;
+      background: linear-gradient(135deg, #7a0e0e 0%, #a01414 100%);
+    }
+
+    .action-edit {
+      right: 0;
+      background: linear-gradient(225deg, #5a2010 0%, #7a3018 100%);
+    }
+
+    .action-icon {
+      font-size: 1.25rem;
+      color: rgba(250,245,234,0.9);
+      line-height: 1;
+    }
+
+    .action-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(250,245,234,0.72);
+      text-align: center;
+      line-height: 1.35;
+    }
+
     /* ── Task card ───────────────────────────────────────── */
     .task-card {
       background: var(--card);
@@ -253,14 +305,14 @@
       cursor: pointer;
       user-select: none;
       position: relative;
+      z-index: 2;
       overflow: hidden;
-      /* Coloured lift shadow + depth shadow */
+      touch-action: pan-y;
       box-shadow:
         3px 4px 0 0 var(--card-shadow, rgba(42,30,12,0.08)),
         0 6px 18px rgba(42,30,12,0.09);
-      /* Slight alternating tilt — overridden on hover */
       transform: rotate(var(--tilt, 0deg));
-      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.4s ease;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.25s ease;
     }
 
     /* Subtle paper grain overlay */
@@ -346,7 +398,6 @@
       font-size: 0.55rem;
     }
 
-    /* Urgency badge styled as a small stamp */
     .urgency-badge {
       display: inline-block;
       font-family: 'Playfair Display', serif;
@@ -454,8 +505,6 @@
     }
 
     /* ── Dirt & stink effects ───────────────────────────── */
-
-/* STINKY watermark stamp */
     .stinky-stamp {
       position: absolute;
       top: 0.3rem;
@@ -513,6 +562,470 @@
       font-size: 0.73rem;
       color: var(--faint);
     }
+
+    /* ── FAB ─────────────────────────────────────────────── */
+    #fab {
+      position: fixed;
+      bottom: 2rem;
+      right: max(2rem, calc(50vw - 380px + 1.25rem));
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 35%, #9a4028, #6a2010);
+      border: 1.5px solid rgba(200,160,120,0.35);
+      box-shadow:
+        0 4px 14px rgba(100,30,10,0.38),
+        0 2px 4px rgba(42,30,12,0.22),
+        inset 0 1px 0 rgba(255,220,180,0.15);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+      user-select: none;
+    }
+
+    #fab:hover {
+      transform: scale(1.07) translateY(-1px);
+      box-shadow:
+        0 7px 18px rgba(100,30,10,0.48),
+        0 3px 6px rgba(42,30,12,0.26),
+        inset 0 1px 0 rgba(255,220,180,0.2);
+    }
+
+    #fab:active { transform: scale(0.94); }
+
+    #fab-plus {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      font-weight: 400;
+      color: #f5e8d0;
+      line-height: 1;
+      margin-top: -2px;
+      pointer-events: none;
+    }
+
+    /* ── Sheet backdrop ──────────────────────────────────── */
+    #sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(30,18,6,0.52);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+
+    #sheet-backdrop.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ── Task sheet ──────────────────────────────────────── */
+    #task-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(110%);
+      width: 100%;
+      max-width: 760px;
+      z-index: 201;
+      background: var(--card);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");
+      border-top: 2.5px solid var(--border);
+      border-left: 1.5px solid var(--border-lt);
+      border-right: 1.5px solid var(--border-lt);
+      border-radius: 6px 6px 0 0;
+      padding: 0 1.5rem 2.5rem;
+      transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+      /* Inner top shadow for depth */
+      box-shadow: 0 -4px 24px rgba(42,30,12,0.14), 0 -1px 0 rgba(200,160,100,0.2);
+    }
+
+    #task-sheet.open {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0.9rem auto 0;
+      opacity: 0.7;
+    }
+
+    .sheet-header {
+      margin: 1.3rem 0 1.4rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-lt);
+      position: relative;
+    }
+
+    .sheet-form-ref {
+      position: absolute;
+      top: 0.1rem;
+      right: 0;
+      font-family: 'Lora', serif;
+      font-size: 0.6rem;
+      color: var(--faint);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      transform: rotate(0.4deg);
+    }
+
+    .sheet-ministry-label {
+      font-family: 'Lora', serif;
+      font-size: 0.64rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .sheet-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.25rem, 3.5vw, 1.5rem);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .sheet-subtitle {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* Form fields */
+    .field-group {
+      margin-bottom: 1.05rem;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .field-label {
+      display: block;
+      font-family: 'Lora', serif;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 0.32rem;
+    }
+
+    .field-input {
+      width: 100%;
+      padding: 0.55rem 0.72rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.92rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .field-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2.5px rgba(122,48,24,0.1);
+    }
+
+    .field-input::placeholder {
+      color: var(--faint);
+      font-style: italic;
+    }
+
+    .field-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a7858'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.72rem center;
+      background-color: var(--bg);
+      padding-right: 2.1rem;
+      cursor: pointer;
+    }
+
+    input[type="date"].field-input::-webkit-calendar-picker-indicator {
+      opacity: 0.4;
+      cursor: pointer;
+    }
+
+    .sheet-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.4rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--border-lt);
+    }
+
+    .sheet-cancel {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.45rem 0.25rem;
+      transition: color 0.15s;
+    }
+
+    .sheet-cancel:hover { color: var(--text); }
+
+    .sheet-submit {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #faf0e0;
+      background: var(--accent);
+      border: none;
+      border-radius: 2px;
+      padding: 0.62rem 1.5rem;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 2px 3px 0 rgba(42,30,12,0.22);
+    }
+
+    .sheet-submit:hover {
+      background: #6a2410;
+      box-shadow: 3px 4px 0 rgba(42,30,12,0.28);
+    }
+
+    .sheet-submit:active { transform: scale(0.97) translateY(1px); box-shadow: 1px 1px 0 rgba(42,30,12,0.2); }
+    .sheet-submit:disabled { opacity: 0.48; cursor: not-allowed; transform: none; }
+
+    /* Delete confirm sheet */
+    #delete-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(110%);
+      width: 100%;
+      max-width: 760px;
+      z-index: 201;
+      background: #1e0808;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      border-top: 2.5px solid #5a1010;
+      border-left: 1.5px solid #3a0c0c;
+      border-right: 1.5px solid #3a0c0c;
+      border-radius: 6px 6px 0 0;
+      padding: 0 1.5rem 2.5rem;
+      transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -4px 24px rgba(80,10,10,0.3);
+    }
+
+    #delete-sheet.open {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .delete-handle {
+      width: 36px;
+      height: 3px;
+      background: #5a1010;
+      border-radius: 2px;
+      margin: 0.9rem auto 0;
+      opacity: 0.7;
+    }
+
+    .delete-header {
+      margin: 1.3rem 0 1.4rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #3a1010;
+    }
+
+    .delete-ref {
+      font-family: 'Lora', serif;
+      font-size: 0.6rem;
+      color: rgba(180,80,80,0.5);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+
+    .delete-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.1rem, 3vw, 1.35rem);
+      font-weight: 700;
+      color: #f0c0a0;
+      line-height: 1.15;
+      margin-bottom: 0.25rem;
+    }
+
+    .delete-duty-name {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      color: rgba(200,140,100,0.72);
+    }
+
+    .delete-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1.2rem;
+    }
+
+    .delete-cancel {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.82rem;
+      color: rgba(200,140,100,0.65);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.45rem 0.25rem;
+      transition: color 0.15s;
+    }
+
+    .delete-cancel:hover { color: rgba(220,170,130,0.9); }
+
+    .delete-confirm {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #f5e0d0;
+      background: #8a1a0a;
+      border: none;
+      border-radius: 2px;
+      padding: 0.62rem 1.5rem;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 2px 3px 0 rgba(80,0,0,0.35);
+    }
+
+    .delete-confirm:hover { background: #a02010; }
+    .delete-confirm:active { transform: scale(0.97) translateY(1px); }
+    .delete-confirm:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Empty State ─────────────────────────────────────── */
+    .empty-state {
+      padding: 3rem 1.5rem 3.5rem;
+      text-align: center;
+      border: 1.5px dashed var(--border-lt);
+      border-radius: 3px;
+      background: var(--card);
+      margin-top: 0.5rem;
+    }
+
+    .empty-state-ref {
+      font-family: 'Lora', serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 1rem;
+    }
+
+    .empty-state-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+      line-height: 1.25;
+    }
+
+    .empty-state-body {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.84rem;
+      color: var(--faint);
+      line-height: 1.55;
+      max-width: 28ch;
+      margin: 0 auto 1.25rem;
+    }
+
+    .empty-state-action {
+      font-family: 'Lora', serif;
+      font-size: 0.78rem;
+      color: var(--accent);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      padding: 0;
+    }
+
+    .empty-state-action:hover { color: #5a1e08; }
+
+    /* ── Toast ───────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 5.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      width: calc(100% - 2.5rem);
+      max-width: 480px;
+      z-index: 300;
+      border-radius: 3px;
+      padding: 0.72rem 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    #toast.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #toast.toast-success {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      box-shadow: 3px 3px 0 var(--color-shadow-lt, rgba(42,30,12,0.08));
+    }
+
+    #toast.toast-error {
+      background: #1e0808;
+      border: 1.5px solid #5a1010;
+      box-shadow: 3px 3px 0 rgba(80,10,10,0.25);
+    }
+
+    #toast-message {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.82rem;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    #toast.toast-error #toast-message {
+      color: #f0c8a8;
+    }
+
+    #toast-close {
+      font-family: 'Lora', serif;
+      font-size: 0.7rem;
+      color: var(--faint);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+      letter-spacing: 0.06em;
+    }
+
+    #toast.toast-error #toast-close { color: rgba(180,100,80,0.6); }
+    #toast-close:hover { color: var(--muted); }
   </style>
 </head>
 <body>
@@ -568,6 +1081,78 @@
   </div>
 </div>
 
+<!-- ── FAB ───────────────────────────────────────────────── -->
+<button id="fab" aria-label="Lodge a new duty">
+  <span id="fab-plus">+</span>
+</button>
+
+<!-- ── Sheet Backdrop ────────────────────────────────────── -->
+<div id="sheet-backdrop"></div>
+
+<!-- ── Task Sheet (Add / Edit) ───────────────────────────── -->
+<div id="task-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-form-ref" id="sheet-form-ref">Form ST-7</span>
+    <p class="sheet-ministry-label">The Ministry of Silly Tasks</p>
+    <h2 class="sheet-title" id="sheet-title">Lodge a New Duty</h2>
+    <p class="sheet-subtitle" id="sheet-subtitle">Complete in full. Incomplete forms will be returned.</p>
+  </div>
+  <form id="task-form" autocomplete="off" novalidate>
+    <div class="field-group">
+      <label class="field-label" for="field-title">Nature of the Duty</label>
+      <input type="text" id="field-title" class="field-input"
+             placeholder="e.g. Vacuum the sitting room" maxlength="120">
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label" for="field-tag">Department</label>
+        <input type="text" id="field-tag" class="field-input"
+               list="tag-suggestions" placeholder="e.g. Kitchen" maxlength="40">
+        <datalist id="tag-suggestions"></datalist>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="field-interval">Recurrence</label>
+        <select id="field-interval" class="field-input field-select">
+          <option value="7">Weekly</option>
+          <option value="14">Fortnightly</option>
+          <option value="30" selected>Monthly</option>
+          <option value="90">Quarterly</option>
+          <option value="365">Annual</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="field-due">Date of Next Reckoning</label>
+      <input type="date" id="field-due" class="field-input">
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="sheet-cancel" id="sheet-cancel">Abandon Post</button>
+      <button type="submit" class="sheet-submit" id="sheet-submit">File with the Ministry</button>
+    </div>
+  </form>
+</div>
+
+<!-- ── Delete Confirm Sheet ───────────────────────────────── -->
+<div id="delete-sheet" role="dialog" aria-modal="true">
+  <div class="delete-handle"></div>
+  <div class="delete-header">
+    <p class="delete-ref">Form DX-1 &mdash; Expungement Notice</p>
+    <h2 class="delete-title">Strike from the Record?</h2>
+    <p class="delete-duty-name" id="delete-duty-name"></p>
+  </div>
+  <div class="delete-actions">
+    <button type="button" class="delete-cancel" id="delete-cancel">Retain on File</button>
+    <button type="button" class="delete-confirm" id="delete-confirm">Expunge the Duty</button>
+  </div>
+</div>
+
+<!-- ── Toast ───────────────────────────────────────────────── -->
+<div id="toast" role="status" aria-live="polite">
+  <span id="toast-message"></span>
+  <button id="toast-close" aria-label="Dismiss">Dismiss</button>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ── Config ───────────────────────────────────────────────
@@ -581,8 +1166,40 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let tasks     = [];
 let activeTag = 'All';
 
-// A task is "done" if it was completed AND is still more than 7 days from due.
-// Once it ticks within 7 days it automatically re-activates.
+// ── Toast ─────────────────────────────────────────────────
+
+let toastTimer = null;
+
+function showToast(message, type = 'success') {
+  const toast   = document.getElementById('toast');
+  const msgEl   = document.getElementById('toast-message');
+
+  clearTimeout(toastTimer);
+  toast.classList.remove('show', 'toast-success', 'toast-error');
+
+  msgEl.textContent = message;
+  toast.classList.add(type === 'error' ? 'toast-error' : 'toast-success');
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+
+  const delay = type === 'error' ? 6000 : 3000;
+  toastTimer = setTimeout(() => toast.classList.remove('show'), delay);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('toast-close').addEventListener('click', () => {
+    clearTimeout(toastTimer);
+    document.getElementById('toast').classList.remove('show');
+  });
+});
+
+// Sheet state
+let sheetMode      = 'create'; // 'create' | 'edit'
+let sheetTask      = null;     // task being edited
+let deleteTarget   = null;     // task pending delete confirmation
+
 function isDone(task) {
   return !!task.last_completed_at && daysFromToday(task.due_date) > 7;
 }
@@ -605,6 +1222,21 @@ window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('app').classList.add('visible');
     }, 900);
   }, LOADING_DURATION);
+
+  // FAB
+  document.getElementById('fab').addEventListener('click', () => openSheet('create', null));
+
+  // Sheet form submit
+  document.getElementById('task-form').addEventListener('submit', handleSheetSubmit);
+  document.getElementById('sheet-cancel').addEventListener('click', closeSheet);
+  document.getElementById('sheet-backdrop').addEventListener('click', () => {
+    closeSheet();
+    closeDeleteSheet();
+  });
+
+  // Delete sheet
+  document.getElementById('delete-cancel').addEventListener('click', closeDeleteSheet);
+  document.getElementById('delete-confirm').addEventListener('click', confirmDelete);
 });
 
 // ── Date helpers ─────────────────────────────────────────
@@ -646,15 +1278,15 @@ function heatClass(days) {
 }
 
 function urgencyLabel(days) {
-  if (days < -1)   return `${Math.abs(days)} days overdue`;
-  if (days === -1)  return '1 day overdue';
-  if (days === 0)   return 'Due today';
-  if (days === 1)   return 'Tomorrow';
+  if (days < -1)  return `${Math.abs(days)} days overdue`;
+  if (days === -1) return '1 day overdue';
+  if (days === 0)  return 'Due today';
+  if (days === 1)  return 'Tomorrow';
   return `In ${days} days`;
 }
 
 function cadenceLabel(n) {
-  const map = { 7: 'Weekly', 14: 'Biweekly', 30: 'Monthly', 90: 'Quarterly', 365: 'Annual' };
+  const map = { 7: 'Weekly', 14: 'Fortnightly', 30: 'Monthly', 90: 'Quarterly', 365: 'Annual' };
   return map[n] || (n ? `Every ${n}d` : '');
 }
 
@@ -676,12 +1308,20 @@ function buildTagFilters() {
     });
     container.appendChild(btn);
   });
+
+  // Keep datalist current for sheet
+  const dl = document.getElementById('tag-suggestions');
+  dl.innerHTML = '';
+  tags.filter(t => t !== 'All').forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    dl.appendChild(opt);
+  });
 }
 
 // ── Data ─────────────────────────────────────────────────
 
 async function loadTasks() {
-  // Fetch all tasks — tag filtering is done client-side
   const { data, error } = await db.from('tasks').select('*');
 
   document.getElementById('status-message').style.display = 'none';
@@ -698,65 +1338,6 @@ async function loadTasks() {
   render();
 }
 
-async function undoTask(task) {
-  const today = addDays(0);
-
-  const { error } = await db
-    .from('tasks')
-    .update({ due_date: today, last_completed_at: null })
-    .eq('id', task.id);
-
-  if (!error) {
-    task.due_date          = today;
-    task.last_completed_at = null;
-  }
-
-  render();
-}
-
-function addSwipeHandlers(card, task) {
-  let startX   = 0;
-  let deltaX   = 0;
-  let dragged  = false;
-
-  function onStart(x) { startX = x; deltaX = 0; dragged = false; }
-
-  function onMove(x) {
-    deltaX = x - startX;
-    if (Math.abs(deltaX) > 8) {
-      dragged = true;
-      card.style.transition = 'none';
-      card.style.transform  = `translateX(${deltaX * 0.45}px)`;
-      card.style.opacity    = String(Math.max(0.25, 1 - Math.abs(deltaX) / 220));
-    }
-  }
-
-  function onEnd() {
-    if (dragged && Math.abs(deltaX) > 80 && task.last_completed_at) {
-      const dir = deltaX > 0 ? '115%' : '-115%';
-      card.style.transition = 'transform 0.28s ease, opacity 0.28s ease';
-      card.style.transform  = `translateX(${dir})`;
-      card.style.opacity    = '0';
-      setTimeout(() => undoTask(task), 280);
-    } else {
-      card.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-      card.style.transform  = '';
-      card.style.opacity    = '';
-    }
-    dragged = false;
-  }
-
-  card.addEventListener('touchstart', e => onStart(e.touches[0].clientX),    { passive: true });
-  card.addEventListener('touchmove',  e => onMove(e.touches[0].clientX),     { passive: true });
-  card.addEventListener('touchend',   onEnd);
-
-  card.addEventListener('mousedown',  e => onStart(e.clientX));
-  card.addEventListener('mousemove',  e => { if (e.buttons === 1) onMove(e.clientX); });
-  card.addEventListener('mouseup',    onEnd);
-  card.addEventListener('mouseleave', onEnd);
-
-}
-
 async function completeTask(task) {
   const newDue = addDays(task.interval_days || 30);
   const now    = new Date().toISOString();
@@ -769,9 +1350,295 @@ async function completeTask(task) {
   if (!error) {
     task.due_date          = newDue;
     task.last_completed_at = now;
+    showToast('Duty filed. Well done, eventually.');
   }
 
   render();
+}
+
+async function createTask(data) {
+  const btn = document.getElementById('sheet-submit');
+  btn.disabled = true;
+  btn.textContent = 'Filing…';
+
+  const { data: rows, error } = await db.from('tasks').insert([data]).select();
+
+  btn.disabled = false;
+  btn.textContent = 'File with the Ministry';
+
+  if (error) { showToast(`The Ministry could not process this form: ${error.message}`, 'error'); return; }
+
+  tasks.push(rows[0]);
+  buildTagFilters();
+  render();
+  closeSheet();
+  showToast('Duty lodged. The Ministry has taken note.');
+}
+
+async function updateTask(id, data) {
+  const btn = document.getElementById('sheet-submit');
+  btn.disabled = true;
+  btn.textContent = 'Amending…';
+
+  const { error } = await db.from('tasks').update(data).eq('id', id);
+
+  btn.disabled = false;
+  btn.textContent = 'Amend the Record';
+
+  if (error) { showToast(`The Ministry could not process this amendment: ${error.message}`, 'error'); return; }
+
+  const task = tasks.find(t => t.id === id);
+  if (task) Object.assign(task, data);
+  buildTagFilters();
+  render();
+  closeSheet();
+  showToast('Record amended. Corrections are on file.');
+}
+
+async function deleteTask(task) {
+  const btn = document.getElementById('delete-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Expunging…';
+
+  const { error } = await db.from('tasks').delete().eq('id', task.id);
+
+  btn.disabled = false;
+  btn.textContent = 'Expunge the Duty';
+
+  if (error) { showToast(`The Ministry could not expunge this duty: ${error.message}`, 'error'); return; }
+
+  tasks = tasks.filter(t => t.id !== task.id);
+  deleteTarget = null;
+  buildTagFilters();
+  render();
+  closeDeleteSheet();
+  showToast('Duty expunged. It never happened.');
+}
+
+// ── Sheet ─────────────────────────────────────────────────
+
+function openSheet(mode, task) {
+  sheetMode = mode;
+  sheetTask = task;
+
+  const titleEl    = document.getElementById('sheet-title');
+  const subtitleEl = document.getElementById('sheet-subtitle');
+  const refEl      = document.getElementById('sheet-form-ref');
+  const submitBtn  = document.getElementById('sheet-submit');
+
+  if (mode === 'edit') {
+    titleEl.textContent    = 'Amend the Record';
+    subtitleEl.textContent = 'Corrections must be initialled by the relevant party.';
+    refEl.textContent      = 'Form AM-3';
+    submitBtn.textContent  = 'Amend the Record';
+    document.getElementById('field-title').value    = task.title;
+    document.getElementById('field-tag').value      = task.tag || '';
+    document.getElementById('field-interval').value = task.interval_days || 30;
+    document.getElementById('field-due').value      = task.due_date;
+  } else {
+    titleEl.textContent    = 'Lodge a New Duty';
+    subtitleEl.textContent = 'Complete in full. Incomplete forms will be returned.';
+    refEl.textContent      = 'Form ST-7';
+    submitBtn.textContent  = 'File with the Ministry';
+    document.getElementById('field-title').value    = '';
+    document.getElementById('field-tag').value      = '';
+    document.getElementById('field-interval').value = 30;
+    document.getElementById('field-due').value      = addDays(0);
+  }
+
+  document.getElementById('sheet-backdrop').classList.add('visible');
+  document.getElementById('task-sheet').classList.add('open');
+  setTimeout(() => document.getElementById('field-title').focus(), 350);
+}
+
+function closeSheet() {
+  document.getElementById('task-sheet').classList.remove('open');
+  document.getElementById('sheet-backdrop').classList.remove('visible');
+  sheetTask = null;
+}
+
+function openDeleteSheet(task) {
+  deleteTarget = task;
+  document.getElementById('delete-duty-name').textContent = `"${task.title}"`;
+  document.getElementById('sheet-backdrop').classList.add('visible');
+  document.getElementById('delete-sheet').classList.add('open');
+}
+
+function closeDeleteSheet() {
+  document.getElementById('delete-sheet').classList.remove('open');
+  document.getElementById('sheet-backdrop').classList.remove('visible');
+  deleteTarget = null;
+  // Snap any lingering cards back
+  document.querySelectorAll('.task-card[data-snapped]').forEach(card => {
+    card.removeAttribute('data-snapped');
+    card.style.transition = 'transform 0.22s ease';
+    card.style.transform  = '';
+  });
+}
+
+function confirmDelete() {
+  if (deleteTarget) deleteTask(deleteTarget);
+}
+
+async function handleSheetSubmit(e) {
+  e.preventDefault();
+
+  const title    = document.getElementById('field-title').value.trim();
+  const tag      = document.getElementById('field-tag').value.trim() || null;
+  const interval = parseInt(document.getElementById('field-interval').value, 10);
+  const due      = document.getElementById('field-due').value;
+
+  if (!title) {
+    document.getElementById('field-title').focus();
+    return;
+  }
+
+  if (!due) {
+    document.getElementById('field-due').focus();
+    return;
+  }
+
+  const data = { title, tag, interval_days: interval, due_date: due };
+
+  if (sheetMode === 'edit' && sheetTask) {
+    await updateTask(sheetTask.id, data);
+  } else {
+    await createTask({ ...data, last_completed_at: null });
+  }
+}
+
+// ── Swipe handlers ────────────────────────────────────────
+
+function addSwipeHandlers(card, wrapper, task) {
+  let startX        = 0;
+  let startY        = 0;
+  let dragging      = false;
+  let dirLocked     = null;  // 'h' | 'v' | null
+  let snapState     = null;  // null | 'delete' | 'edit'
+  let activePtrId   = null;
+
+  const SNAP_DIST      = 92;
+  const SNAP_THRESHOLD = 68;
+
+  const deleteAction = wrapper.querySelector('.action-delete');
+  const editAction   = wrapper.querySelector('.action-edit');
+
+  function snapTo(state, animate = true) {
+    snapState = state;
+    if (animate) card.style.transition = 'transform 0.22s ease';
+
+    if (state === 'delete') {
+      card.style.transform = `translateX(${SNAP_DIST}px)`;
+      card.setAttribute('data-snapped', 'delete');
+      deleteAction.classList.add('visible');
+      editAction.classList.remove('visible');
+    } else if (state === 'edit') {
+      card.style.transform = `translateX(-${SNAP_DIST}px)`;
+      card.setAttribute('data-snapped', 'edit');
+      editAction.classList.add('visible');
+      deleteAction.classList.remove('visible');
+    } else {
+      card.style.transform = '';
+      card.removeAttribute('data-snapped');
+      deleteAction.classList.remove('visible');
+      editAction.classList.remove('visible');
+    }
+  }
+
+  card.addEventListener('pointerdown', e => {
+    if (activePtrId !== null) return;
+    activePtrId = e.pointerId;
+    startX  = e.clientX;
+    startY  = e.clientY;
+    dragging  = false;
+    dirLocked = null;
+    card.style.transition = 'none';
+  });
+
+  card.addEventListener('pointermove', e => {
+    if (e.pointerId !== activePtrId) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    if (!dirLocked) {
+      if (Math.abs(dx) > 7 || Math.abs(dy) > 7) {
+        dirLocked = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+        if (dirLocked === 'h') {
+          card.setPointerCapture(e.pointerId);
+          dragging = true;
+        } else {
+          // Vertical — release and let scroll happen
+          activePtrId = null;
+          card.style.transition = 'transform 0.22s ease';
+          snapTo(snapState, false);
+          return;
+        }
+      }
+    }
+
+    if (dirLocked !== 'h') return;
+
+    const baseX  = snapState === 'delete' ? SNAP_DIST : snapState === 'edit' ? -SNAP_DIST : 0;
+    const newX   = baseX + dx;
+    const clamped = Math.max(-SNAP_DIST * 1.3, Math.min(SNAP_DIST * 1.3, newX));
+    card.style.transform = `translateX(${clamped}px)`;
+
+    // Show action hint as card moves
+    if (clamped > 8)  { deleteAction.classList.add('visible'); editAction.classList.remove('visible'); }
+    else if (clamped < -8) { editAction.classList.add('visible'); deleteAction.classList.remove('visible'); }
+    else { deleteAction.classList.remove('visible'); editAction.classList.remove('visible'); }
+  });
+
+  function onRelease(clientX) {
+    if (activePtrId === null) return;
+    const dx    = clientX - startX;
+    const baseX = snapState === 'delete' ? SNAP_DIST : snapState === 'edit' ? -SNAP_DIST : 0;
+    const newX  = baseX + dx;
+    activePtrId = null;
+
+    if (!dragging) {
+      if (snapState) {
+        snapTo(null);
+      } else {
+        completeTask(task);
+      }
+      return;
+    }
+
+    dragging  = false;
+    dirLocked = null;
+
+    if (!snapState) {
+      if (newX >= SNAP_THRESHOLD)       snapTo('delete');
+      else if (newX <= -SNAP_THRESHOLD) snapTo('edit');
+      else                              snapTo(null);
+    } else {
+      const closeThreshold = SNAP_DIST * 0.38;
+      if (snapState === 'delete' && dx < -closeThreshold) snapTo(null);
+      else if (snapState === 'edit' && dx > closeThreshold) snapTo(null);
+      else snapTo(snapState);
+    }
+  }
+
+  card.addEventListener('pointerup',     e => onRelease(e.clientX));
+  card.addEventListener('pointercancel', () => {
+    activePtrId = null;
+    dragging    = false;
+    dirLocked   = null;
+    snapTo(snapState);
+  });
+
+  // Action button handlers
+  deleteAction.addEventListener('click', () => {
+    if (snapState !== 'delete') return;
+    openDeleteSheet(task);
+  });
+
+  editAction.addEventListener('click', () => {
+    if (snapState !== 'edit') return;
+    snapTo(null);
+    setTimeout(() => openSheet('edit', task), 230);
+  });
 }
 
 // ── Render ────────────────────────────────────────────────
@@ -780,7 +1647,6 @@ function render() {
   const list = document.getElementById('task-list');
   list.innerHTML = '';
 
-  // Apply tag filter
   const visible = activeTag === 'All'
     ? tasks
     : tasks.filter(t => t.tag === activeTag);
@@ -789,42 +1655,85 @@ function render() {
     .filter(t => !isDone(t))
     .sort((a, b) => daysFromToday(a.due_date) - daysFromToday(b.due_date));
 
-  // Done tasks sorted by due date so the ones about to re-activate sit first
   const done = visible
     .filter(t => isDone(t))
     .sort((a, b) => daysFromToday(a.due_date) - daysFromToday(b.due_date));
 
-  // Stats reflect current filter
   document.getElementById('count-overdue').textContent  = active.filter(t => daysFromToday(t.due_date) < 0).length;
   document.getElementById('count-due').textContent      = active.filter(t => daysFromToday(t.due_date) === 0).length;
   document.getElementById('count-upcoming').textContent = active.filter(t => daysFromToday(t.due_date) > 0).length;
   document.getElementById('count-total').textContent    = visible.length;
 
-  function makeCard(task, isDone, index) {
-    const days  = daysFromToday(task.due_date);
-    const card  = document.createElement('div');
-    card.className = 'task-card card-entering ' + (isDone ? 'just-done' : heatClass(days));
+  function makeCard(task, taskIsDone, index) {
+    const days = daysFromToday(task.due_date);
+
+    // Wrapper holds action buttons + card
+    const wrapper = document.createElement('div');
+    wrapper.className = 'card-wrapper';
+
+    const deleteAction = document.createElement('div');
+    deleteAction.className = 'card-action action-delete';
+    deleteAction.innerHTML = `<span class="action-icon">✕</span><span class="action-label">Strike from<br>Record</span>`;
+
+    const editAction = document.createElement('div');
+    editAction.className = 'card-action action-edit';
+    editAction.innerHTML = `<span class="action-icon">✎</span><span class="action-label">Amend<br>Record</span>`;
+
+    const card = document.createElement('div');
+    card.className = 'task-card card-entering ' + (taskIsDone ? 'just-done' : heatClass(days));
     card.style.animationDelay = `${index * 35}ms`;
 
     const cadence = cadenceLabel(task.interval_days);
 
     card.innerHTML = `
-      ${days < 0 && !isDone ? '<img class="stinky-stamp" src="stinky.png" alt="">' : ''}
+      ${days < 0 && !taskIsDone ? '<img class="stinky-stamp" src="stinky.png" alt="">' : ''}
       <div class="task-title-row">
-        <span class="check-icon">${isDone ? '✓' : ''}</span>
+        <span class="check-icon">${taskIsDone ? '✓' : ''}</span>
         <span class="task-title">${task.title}</span>
       </div>
       <div class="task-meta">
         <span class="task-due">${formatDate(task.due_date)}</span>
         <span class="meta-dot">·</span>
-        <span class="urgency-badge">${isDone ? 'Filed ✓' : urgencyLabel(days)}</span>
+        <span class="urgency-badge">${taskIsDone ? 'Filed ✓' : urgencyLabel(days)}</span>
         ${cadence ? `<span class="meta-dot">·</span><span class="cadence-label">${cadence}</span>` : ''}
       </div>
     `;
 
-    addSwipeHandlers(card, task);
-    if (!isDone) card.addEventListener('click', () => completeTask(task));
-    return card;
+    wrapper.appendChild(deleteAction);
+    wrapper.appendChild(editAction);
+    wrapper.appendChild(card);
+
+    addSwipeHandlers(card, wrapper, task);
+
+    return wrapper;
+  }
+
+  if (active.length === 0 && done.length === 0) {
+    const el = document.createElement('div');
+    el.className = 'empty-state';
+
+    if (activeTag !== 'All') {
+      el.innerHTML = `
+        <p class="empty-state-ref">Ref: NIL — No duties on file</p>
+        <p class="empty-state-heading">The ${activeTag} department has no outstanding duties.</p>
+        <p class="empty-state-body">This office has found no records matching the specified department. The filing cabinet is empty.</p>
+        <button class="empty-state-action" id="empty-clear-filter">View All Departments</button>
+      `;
+      list.appendChild(el);
+      document.getElementById('empty-clear-filter').addEventListener('click', () => {
+        activeTag = 'All';
+        buildTagFilters();
+        render();
+      });
+    } else {
+      el.innerHTML = `
+        <p class="empty-state-ref">Ref: NIL — Register vacant</p>
+        <p class="empty-state-heading">No duties have been registered with this office.</p>
+        <p class="empty-state-body">The register is empty. Nothing has been filed, lodged, or otherwise brought to the Ministry's attention.</p>
+      `;
+      list.appendChild(el);
+    }
+    return;
   }
 
   active.forEach((t, i) => list.appendChild(makeCard(t, false, i)));

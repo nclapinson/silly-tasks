@@ -1,0 +1,318 @@
+/**
+ * DESIGN TOKENS — The Ministry of Silly Tasks
+ * Philosophy: Institutional Paper
+ *
+ * A lovingly recreated British government document aesthetic.
+ * Cream parchment, aged serif typography, heat-coded urgency stamps,
+ * and the quiet authority of a department that has been underfunded since 1987.
+ *
+ * Usage: import this file before all other styles. All tokens are CSS custom
+ * properties on :root. Component-level overrides use scoped custom properties
+ * (e.g. --card-accent) that default to base tokens.
+ */
+
+:root {
+
+  /* ─────────────────────────────────────────────────────────
+     COLOUR — Base palette
+     Sourced from the Institutional Paper philosophy.
+     Warm cream grounds, deep brown ink, burnt sienna accent.
+  ───────────────────────────────────────────────────────── */
+
+  /* Backgrounds */
+  --color-bg:           #f0e6d0;   /* Page ground — aged parchment */
+  --color-card:         #faf5ea;   /* Card surface — off-white cream */
+  --color-card-filed:   #f5f0e4;   /* Filed/completed card — slightly flatter */
+
+  /* Borders */
+  --color-border:       #c8b48a;   /* Standard border — tan */
+  --color-border-lt:    #ddd0b0;   /* Light border — inter-card, dividers */
+
+  /* Text */
+  --color-text:         #2a1e0c;   /* Primary — deep brown ink */
+  --color-muted:        #8a7858;   /* Secondary — aged ink */
+  --color-faint:        #b8a888;   /* Placeholder / decorative — dust */
+
+  /* Accent */
+  --color-accent:       #7a3018;   /* Burnt sienna — Ministry red */
+  --color-accent-hover: rgba(122, 48, 24, 0.05); /* Accent wash for hover states */
+
+  /* Shadows */
+  --color-shadow:       rgba(42, 30, 12, 0.12);  /* Base drop shadow tint */
+  --color-shadow-lt:    rgba(42, 30, 12, 0.08);  /* Lighter shadow — cards, panels */
+  --color-shadow-md:    rgba(42, 30, 12, 0.13);  /* Medium — elevated hover state */
+
+  /* Stat colours (inline overrides on .stat-* elements) */
+  --color-stat-overdue:   #9a1a0a;   /* Overdue count — crimson */
+  --color-stat-due:       #8a6200;   /* Due today count — amber */
+  --color-stat-upcoming:  #3a6a2a;   /* Upcoming count — forest */
+  --color-stat-total:     #8a7858;   /* Total count — same as muted */
+
+  /* ─────────────────────────────────────────────────────────
+     COLOUR — Urgency heat system
+     Cards receive a heat class (heat-5 … cool-2) which sets
+     --card-accent, --card-text, --card-shadow, background,
+     and border-color for that card's context.
+
+     Scale (days relative to due date):
+       heat-5 ≤ -7d   Critically overdue — alarming crimson
+       heat-4 ≤ -3d   Very overdue — burnt orange
+       heat-3 ≤ -1d   Overdue — amber-gold
+       heat-2  = 0d   Due today — yellow-gold
+       heat-1 ≤ +3d   Due soon — forest green
+       cool-1 ≤ +10d  Upcoming — teal
+       cool-2  > +10d Distant — slate blue
+  ───────────────────────────────────────────────────────── */
+
+  /* heat-5: Critically overdue */
+  --heat-5-accent:      #b01010;
+  --heat-5-text:        #7a0a0a;
+  --heat-5-shadow:      rgba(176, 16, 16, 0.22);
+  --heat-5-bg:          #fdf2f0;
+  --heat-5-border:      #dbb8b0;
+
+  /* heat-4: Very overdue */
+  --heat-4-accent:      #b84800;
+  --heat-4-text:        #7a3000;
+  --heat-4-shadow:      rgba(184, 72, 0, 0.22);
+  --heat-4-bg:          #fdf4ee;
+  --heat-4-border:      #ddc8a8;
+
+  /* heat-3: Overdue */
+  --heat-3-accent:      #c07800;
+  --heat-3-text:        #7a4a00;
+  --heat-3-shadow:      rgba(192, 120, 0, 0.22);
+  --heat-3-bg:          #fdf8e8;
+  --heat-3-border:      #ddd098;
+
+  /* heat-2: Due today */
+  --heat-2-accent:      #a09000;
+  --heat-2-text:        #6a5e00;
+  --heat-2-shadow:      rgba(160, 144, 0, 0.22);
+  --heat-2-bg:          #fdfae0;
+  --heat-2-border:      #dad898;
+
+  /* heat-1: Due soon */
+  --heat-1-accent:      #4a8020;
+  --heat-1-text:        #2a5010;
+  --heat-1-shadow:      rgba(74, 128, 32, 0.2);
+  --heat-1-bg:          #f4faf0;
+  --heat-1-border:      #bcd8a8;
+
+  /* cool-1: Upcoming */
+  --cool-1-accent:      #2a7a7a;
+  --cool-1-text:        #1a4a4a;
+  --cool-1-shadow:      rgba(42, 122, 122, 0.2);
+  --cool-1-bg:          #f0faf8;
+  --cool-1-border:      #a8d8d0;
+
+  /* cool-2: Distant */
+  --cool-2-accent:      #3a5a9a;
+  --cool-2-text:        #2a3a6a;
+  --cool-2-shadow:      rgba(58, 90, 154, 0.2);
+  --cool-2-bg:          #f0f2fa;
+  --cool-2-border:      #b8c8e8;
+
+  /* just-done: Completed / filed */
+  --done-accent:        #b8a888;
+  --done-text:          #8a7858;
+  --done-shadow:        rgba(42, 30, 12, 0.06);
+
+  /* ─────────────────────────────────────────────────────────
+     COLOUR — Swipe action surfaces
+     Revealed behind cards on left/right swipe.
+  ───────────────────────────────────────────────────────── */
+
+  /* Delete (swipe right) */
+  --action-delete-from:   #7a0e0e;
+  --action-delete-to:     #a01414;
+
+  /* Edit / Amend (swipe left) */
+  --action-edit-from:     #5a2010;
+  --action-edit-to:       #7a3018;
+
+  /* Action button text / icon */
+  --action-label-color:   rgba(250, 245, 234, 0.72);
+  --action-icon-color:    rgba(250, 245, 234, 0.90);
+
+  /* ─────────────────────────────────────────────────────────
+     COLOUR — Bottom sheet surfaces
+  ───────────────────────────────────────────────────────── */
+
+  /* Task sheet (add / edit) */
+  --sheet-task-bg:        #faf5ea;   /* Same as card surface */
+  --sheet-task-border:    #c8b48a;
+
+  /* Delete sheet (DX-1) */
+  --sheet-delete-bg:      #1a0a0a;   /* Near-black crimson ground */
+  --sheet-delete-border:  #4a1010;
+  --sheet-delete-text:    #f0d8c8;   /* Warm off-white */
+  --sheet-delete-muted:   rgba(240, 216, 200, 0.55);
+
+  /* Backdrop */
+  --sheet-backdrop:       rgba(42, 30, 12, 0.55);
+
+  /* ─────────────────────────────────────────────────────────
+     COLOUR — Stinky badge (urgency stamp image)
+     Opacity is the only variable; the image is fixed.
+  ───────────────────────────────────────────────────────── */
+
+  --stinky-opacity-heat-3:  0.25;
+  --stinky-opacity-heat-4:  0.45;
+  --stinky-opacity-heat-5:  0.70;
+
+  /* ─────────────────────────────────────────────────────────
+     TYPOGRAPHY
+     Playfair Display: display headings, numbers, stamps, pills
+     Lora: body copy, labels, meta, ministry labels
+  ───────────────────────────────────────────────────────── */
+
+  --font-display:  'Playfair Display', Georgia, serif;
+  --font-body:     'Lora', Georgia, serif;
+
+  /* Type scale */
+  --text-xs:    0.62rem;   /* 9.9px — stat labels, micro copy */
+  --text-sm:    0.72rem;   /* 11.5px — sub labels, loading sub */
+  --text-base:  0.87rem;   /* 13.9px — body meta, header date */
+  --text-md:    0.9rem;    /* 14.4px — card body */
+  --text-ui:    0.78rem;   /* 12.5px — tag pills, action labels */
+  --text-h3:    1rem;      /* 16px — sheet section headings */
+  --text-h2:    1.15rem;   /* 18.4px — sheet titles */
+  --text-h1:    clamp(1.7rem, 4vw, 2.5rem);  /* App title */
+  --text-stat:  1.5rem;    /* 24px — stat numbers */
+  --text-stamp: 0.58rem;   /* 9.3px — urgency badge labels */
+
+  /* Weights */
+  --weight-regular:   400;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-black:     900;
+
+  /* Line heights */
+  --leading-tight:    1.05;   /* Display headings */
+  --leading-snug:     1.25;   /* Card titles */
+  --leading-normal:   1.45;   /* Body / labels */
+  --leading-relaxed:  1.6;    /* Form help text */
+
+  /* Letter spacing */
+  --tracking-wide:    0.02em;  /* Tag pills */
+  --tracking-wider:   0.1em;   /* Stat labels, action labels */
+  --tracking-widest:  0.16em;  /* Loading sub, sub-labels */
+  --tracking-ministry:0.24em;  /* Ministry label — most generous */
+
+  /* ─────────────────────────────────────────────────────────
+     SPACING
+     Informal rem scale. Not a strict 4px/8px grid — the
+     Institutional Paper philosophy favours breathing room
+     that feels measured rather than mechanical.
+  ───────────────────────────────────────────────────────── */
+
+  --space-1:   0.25rem;   /* 4px  — tight gaps */
+  --space-2:   0.4rem;    /* 6.4px — check icon margin */
+  --space-3:   0.45rem;   /* 7.2px — tag pill gap */
+  --space-4:   0.6rem;    /* 9.6px — card gap, title row gap */
+  --space-5:   0.75rem;   /* 12px — stat padding h */
+  --space-6:   0.85rem;   /* 13.6px — stat/tag padding v */
+  --space-7:   0.9rem;    /* 14.4px — card padding v */
+  --space-8:   1rem;      /* 16px — general small gap */
+  --space-9:   1.15rem;   /* 18.4px — card padding h */
+  --space-10:  1.25rem;   /* 20px — page h padding */
+  --space-11:  1.5rem;    /* 24px — section gap */
+  --space-12:  1.75rem;   /* 28px — header gap */
+  --space-14:  2.5rem;    /* 40px — page top padding */
+  --space-16:  3.5rem;    /* 56px — loading text bottom */
+  --space-20:  6rem;      /* 96px — page bottom padding (FAB clearance) */
+
+  /* ─────────────────────────────────────────────────────────
+     LAYOUT
+  ───────────────────────────────────────────────────────── */
+
+  --layout-max-width:   760px;
+  --layout-padding-h:   var(--space-10);   /* 1.25rem */
+
+  /* FAB positioning — right edge aligned to page inner right */
+  --fab-right:  calc(50vw - (var(--layout-max-width) / 2) + var(--layout-padding-h));
+  --fab-bottom: 1.75rem;
+  --fab-size:   3.4rem;
+
+  /* ─────────────────────────────────────────────────────────
+     BORDERS & RADIUS
+     Hard corners preferred — this is government paperwork.
+     Radius is used sparingly and kept very small.
+  ───────────────────────────────────────────────────────── */
+
+  --radius-sm:   2px;   /* Tag pills */
+  --radius-md:   3px;   /* Cards, stats bar, sheets, actions */
+  --radius-full: 50%;   /* Check icon circle */
+
+  --border-width:     1.5px;   /* Standard border — cards, stats, fields */
+  --border-width-accent: 5px;  /* Card left accent bar */
+  --border-width-top:    2px;  /* Card top accent bar */
+
+  /* ─────────────────────────────────────────────────────────
+     SHADOWS
+     Offset shadows — printed paper sitting on a desk,
+     not floating UI elements. No blur-only shadows.
+  ───────────────────────────────────────────────────────── */
+
+  --shadow-card:        3px 4px 0 0 var(--card-shadow, var(--color-shadow-lt)),
+                        0 6px 18px var(--color-shadow-lt);
+  --shadow-card-hover:  4px 6px 0 0 var(--card-shadow, rgba(42,30,12,0.10)),
+                        0 10px 24px var(--color-shadow-md);
+  --shadow-panel:       3px 3px 0 var(--color-shadow-lt);   /* Stats bar */
+  --shadow-fab:         0 4px 16px rgba(42,30,12,0.30),
+                        0 2px 6px  rgba(42,30,12,0.18);
+
+  /* ─────────────────────────────────────────────────────────
+     MOTION
+     Purposeful, not decorative. Fast enough to feel decisive.
+  ───────────────────────────────────────────────────────── */
+
+  --duration-snap:      0.15s;   /* Card snap open/close */
+  --duration-fast:      0.18s;   /* Hover transitions */
+  --duration-normal:    0.25s;   /* Opacity, opacity fades */
+  --duration-sheet:     0.32s;   /* Sheet slide-up */
+  --duration-card-in:   0.30s;   /* Card entrance */
+  --duration-app-in:    0.70s;   /* App reveal */
+
+  --easing-default:     ease;
+  --easing-out:         cubic-bezier(0.22, 1, 0.36, 1);  /* Sheet slide-up */
+
+  /* ─────────────────────────────────────────────────────────
+     CARD TILT
+     Slight random rotation gives a "stack of papers" feel.
+     Applied via nth-child selectors in component CSS.
+  ───────────────────────────────────────────────────────── */
+
+  --tilt-a:   0.35deg;
+  --tilt-b:  -0.25deg;
+  --tilt-c:   0.15deg;
+
+  /* ─────────────────────────────────────────────────────────
+     Z-INDEX SCALE
+  ───────────────────────────────────────────────────────── */
+
+  --z-card:       2;    /* Task card above swipe action reveals */
+  --z-action:     1;    /* Swipe action buttons */
+  --z-fab:       10;    /* FAB above all content */
+  --z-sheet:     20;    /* Bottom sheets */
+  --z-backdrop:  19;    /* Sheet backdrop */
+  --z-loading:  999;    /* Loading screen — topmost */
+
+  /* ─────────────────────────────────────────────────────────
+     COMPONENT TOKENS — Swipe action width
+  ───────────────────────────────────────────────────────── */
+
+  --action-width:       92px;
+  --swipe-threshold:    70px;   /* JS reference — not used in CSS */
+
+  /* ─────────────────────────────────────────────────────────
+     COMPONENT TOKENS — Card defaults
+     These are overridden per-card by the heat class.
+  ───────────────────────────────────────────────────────── */
+
+  --card-accent:   var(--color-border);       /* Left/top bar colour */
+  --card-text:     var(--color-muted);        /* Badge text colour */
+  --card-shadow:   var(--color-shadow-lt);    /* Offset shadow colour */
+
+}
