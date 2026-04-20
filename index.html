@@ -1976,7 +1976,7 @@ function render() {
 
   document.getElementById('count-overdue').textContent  = active.filter(t => daysFromToday(t.due_date) < 0).length;
   document.getElementById('count-due').textContent      = active.filter(t => daysFromToday(t.due_date) === 0).length;
-  document.getElementById('count-upcoming').textContent = active.filter(t => daysFromToday(t.due_date) > 0).length;
+  document.getElementById('count-upcoming').textContent = active.filter(t => { const d = daysFromToday(t.due_date); return d > 0 && d <= 21; }).length;
   document.getElementById('count-total').textContent    = visible.length;
 
   function makeCard(task, taskIsDone, index) {
