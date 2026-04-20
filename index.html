@@ -1301,7 +1301,9 @@ let sheetTask      = null;     // task being edited
 let deleteTarget   = null;     // task pending delete confirmation
 
 function isDone(task) {
-  return !!task.last_completed_at && daysFromToday(task.due_date) > 21;
+  if (!task.last_completed_at) return false;
+  const completedToday = daysFromToday(task.last_completed_at.slice(0, 10)) === 0;
+  return completedToday || daysFromToday(task.due_date) > 21;
 }
 
 // ── Init ─────────────────────────────────────────────────
