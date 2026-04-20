@@ -1112,6 +1112,45 @@
 
     .reset-confirm:hover { background: #6a2410; }
     .reset-confirm:active { transform: scale(0.97) translateY(1px); }
+
+    /* Shared non-focal delete link used in FC-1 and PCA-1 sheets */
+    .sheet-delete-link {
+      display: block;
+      margin-top: 1.1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-lt);
+      text-align: center;
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-size: 0.75rem;
+      color: var(--faint);
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      cursor: pointer;
+      width: 100%;
+      transition: color 0.15s;
+    }
+    .sheet-delete-link:hover { color: #9a1a0a; }
+
+    /* ── Complete confirm sheet (FC-1) ───────────────────── */
+    #complete-sheet {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%) translateY(110%);
+      width: 100%; max-width: 760px;
+      z-index: 201;
+      background: var(--card);
+      border-top: 2.5px solid var(--border);
+      border-left: 1.5px solid var(--border-lt);
+      border-right: 1.5px solid var(--border-lt);
+      border-radius: 6px 6px 0 0;
+      padding: 0 1.5rem 2.5rem;
+      transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -4px 24px rgba(42,30,12,0.14);
+    }
+    #complete-sheet.open { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -1233,18 +1272,34 @@
   </div>
 </div>
 
-<!-- ── Reset Confirm Sheet ────────────────────────────────── -->
+<!-- ── Complete Confirm Sheet (FC-1) ─────────────────────── -->
+<div id="complete-sheet" role="dialog" aria-modal="true">
+  <div class="reset-handle"></div>
+  <div class="reset-header">
+    <p class="reset-ref">Form FC-1 &mdash; Field Completion Notice</p>
+    <h2 class="reset-title">File this Duty?</h2>
+    <p class="reset-body" id="complete-body"></p>
+  </div>
+  <div class="reset-actions">
+    <button type="button" class="reset-cancel" id="complete-cancel">Abandon Post</button>
+    <button type="button" class="reset-confirm" id="complete-confirm">File with the Ministry</button>
+  </div>
+  <button type="button" class="sheet-delete-link" id="complete-delete">Strike from Record</button>
+</div>
+
+<!-- ── PCA Sheet (PCA-1) ──────────────────────────────────── -->
 <div id="reset-sheet" role="dialog" aria-modal="true">
   <div class="reset-handle"></div>
   <div class="reset-header">
-    <p class="reset-ref">Form RF-2 — Re-filing Notice</p>
-    <h2 class="reset-title">Re-file this Duty?</h2>
+    <p class="reset-ref">Form PCA-1 &mdash; Premature Completion Amendment</p>
+    <h2 class="reset-title">Amend Completion Record?</h2>
     <p class="reset-body" id="reset-body"></p>
   </div>
   <div class="reset-actions">
     <button type="button" class="reset-cancel" id="reset-cancel">Abandon Post</button>
-    <button type="button" class="reset-confirm" id="reset-confirm">Re-file the Duty</button>
+    <button type="button" class="reset-confirm" id="reset-confirm">Amend the Record</button>
   </div>
+  <button type="button" class="sheet-delete-link" id="reset-delete">Strike from Record</button>
 </div>
 
 <!-- ── Toast ───────────────────────────────────────────────── -->
@@ -1334,6 +1389,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('sheet-backdrop').addEventListener('click', () => {
     closeSheet();
     closeDeleteSheet();
+    closeCompleteSheet();
     closeResetSheet();
   });
 
@@ -1341,10 +1397,24 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('delete-cancel').addEventListener('click', closeDeleteSheet);
   document.getElementById('delete-confirm').addEventListener('click', confirmDelete);
 
-  // Reset sheet
+  // Complete confirm sheet (FC-1)
+  document.getElementById('complete-cancel').addEventListener('click', closeCompleteSheet);
+  document.getElementById('complete-confirm').addEventListener('click', () => {
+    if (completeTarget) { completeTask(completeTarget); closeCompleteSheet(); }
+  });
+  document.getElementById('complete-delete').addEventListener('click', () => {
+    const t = completeTarget; closeCompleteSheet();
+    setTimeout(() => openDeleteSheet(t), 80);
+  });
+
+  // PCA sheet (PCA-1)
   document.getElementById('reset-cancel').addEventListener('click', closeResetSheet);
   document.getElementById('reset-confirm').addEventListener('click', () => {
     if (resetTarget) { completeTask(resetTarget); closeResetSheet(); }
+  });
+  document.getElementById('reset-delete').addEventListener('click', () => {
+    const t = resetTarget; closeResetSheet();
+    setTimeout(() => openDeleteSheet(t), 80);
   });
 });
 
@@ -1589,16 +1659,35 @@ function confirmDelete() {
   if (deleteTarget) deleteTask(deleteTarget);
 }
 
-let resetTarget = null;
+let resetTarget   = null;
+let completeTarget = null;
+
+function formatLong(dateStr) {
+  return parseDate(dateStr).toLocaleDateString('en-CA', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+}
+
+function openCompleteSheet(task) {
+  completeTarget = task;
+  const newDue = addDays(task.interval_days || 30);
+  document.getElementById('complete-body').innerHTML =
+    `Filing <strong>${task.title}</strong> will set the next reckoning to <strong>${formatLong(newDue)}</strong>.`;
+  document.getElementById('sheet-backdrop').classList.add('visible');
+  document.getElementById('complete-sheet').classList.add('open');
+}
+
+function closeCompleteSheet() {
+  document.getElementById('complete-sheet').classList.remove('open');
+  document.getElementById('sheet-backdrop').classList.remove('visible');
+  completeTarget = null;
+}
 
 function openResetSheet(task) {
   resetTarget = task;
   const newDue = addDays(task.interval_days || 30);
-  const formatted = parseDate(newDue).toLocaleDateString('en-CA', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-  });
   document.getElementById('reset-body').innerHTML =
-    `The next reckoning for <strong>${task.title}</strong> will be reset to <strong>${formatted}</strong>.`;
+    `This duty was recently filed. Re-filing <strong>${task.title}</strong> will reset the next reckoning to <strong>${formatLong(newDue)}</strong>.`;
   document.getElementById('sheet-backdrop').classList.add('visible');
   document.getElementById('reset-sheet').classList.add('open');
 }
@@ -1829,7 +1918,7 @@ function render() {
     wrapper.appendChild(card);
 
     card.addEventListener('click', () => {
-      if (taskIsDone) { openResetSheet(task); } else { completeTask(task); }
+      if (taskIsDone) { openResetSheet(task); } else { openCompleteSheet(task); }
     });
 
     return wrapper;
