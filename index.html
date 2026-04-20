@@ -307,7 +307,7 @@
       position: relative;
       z-index: 2;
       overflow: hidden;
-      touch-action: pan-y;
+      touch-action: manipulation;
       box-shadow:
         3px 4px 0 0 var(--card-shadow, rgba(42,30,12,0.08)),
         0 6px 18px rgba(42,30,12,0.09);
@@ -1026,6 +1026,92 @@
 
     #toast.toast-error #toast-close { color: rgba(180,100,80,0.6); }
     #toast-close:hover { color: var(--muted); }
+
+    /* ── Reset confirm sheet ─────────────────────────────── */
+    #reset-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(110%);
+      width: 100%;
+      max-width: 760px;
+      z-index: 201;
+      background: var(--card);
+      border-top: 2.5px solid var(--border);
+      border-left: 1.5px solid var(--border-lt);
+      border-right: 1.5px solid var(--border-lt);
+      border-radius: 6px 6px 0 0;
+      padding: 0 1.5rem 2.5rem;
+      transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -4px 24px rgba(42,30,12,0.14);
+    }
+
+    #reset-sheet.open { transform: translateX(-50%) translateY(0); }
+
+    .reset-handle {
+      width: 36px; height: 3px;
+      background: var(--border); border-radius: 2px;
+      margin: 0.9rem auto 0; opacity: 0.7;
+    }
+
+    .reset-header {
+      margin: 1.3rem 0 1.4rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-lt);
+    }
+
+    .reset-ref {
+      font-family: 'Lora', serif;
+      font-size: 0.6rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--faint);
+      margin-bottom: 0.3rem;
+    }
+
+    .reset-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.1rem, 3vw, 1.3rem);
+      font-weight: 700; color: var(--text);
+      line-height: 1.15; margin-bottom: 0.25rem;
+    }
+
+    .reset-body {
+      font-family: 'Lora', serif;
+      font-style: italic; font-size: 0.82rem;
+      color: var(--muted); line-height: 1.5;
+    }
+
+    .reset-body strong {
+      font-style: normal; color: var(--text);
+    }
+
+    .reset-actions {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding-top: 1.2rem;
+    }
+
+    .reset-cancel {
+      font-family: 'Lora', serif; font-style: italic;
+      font-size: 0.82rem; color: var(--muted);
+      background: none; border: none; cursor: pointer;
+      padding: 0.45rem 0.25rem; transition: color 0.15s;
+    }
+
+    .reset-cancel:hover { color: var(--text); }
+
+    .reset-confirm {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.84rem; font-weight: 700;
+      color: #faf0e0; background: var(--accent);
+      border: none; border-radius: 2px;
+      padding: 0.62rem 1.5rem; cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 2px 3px 0 rgba(42,30,12,0.22);
+    }
+
+    .reset-confirm:hover { background: #6a2410; }
+    .reset-confirm:active { transform: scale(0.97) translateY(1px); }
   </style>
 </head>
 <body>
@@ -1147,6 +1233,20 @@
   </div>
 </div>
 
+<!-- ── Reset Confirm Sheet ────────────────────────────────── -->
+<div id="reset-sheet" role="dialog" aria-modal="true">
+  <div class="reset-handle"></div>
+  <div class="reset-header">
+    <p class="reset-ref">Form RF-2 — Re-filing Notice</p>
+    <h2 class="reset-title">Re-file this Duty?</h2>
+    <p class="reset-body" id="reset-body"></p>
+  </div>
+  <div class="reset-actions">
+    <button type="button" class="reset-cancel" id="reset-cancel">Abandon Post</button>
+    <button type="button" class="reset-confirm" id="reset-confirm">Re-file the Duty</button>
+  </div>
+</div>
+
 <!-- ── Toast ───────────────────────────────────────────────── -->
 <div id="toast" role="status" aria-live="polite">
   <span id="toast-message"></span>
@@ -1201,7 +1301,7 @@ let sheetTask      = null;     // task being edited
 let deleteTarget   = null;     // task pending delete confirmation
 
 function isDone(task) {
-  return !!task.last_completed_at && daysFromToday(task.due_date) > 7;
+  return !!task.last_completed_at && daysFromToday(task.due_date) > 21;
 }
 
 // ── Init ─────────────────────────────────────────────────
@@ -1232,11 +1332,18 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('sheet-backdrop').addEventListener('click', () => {
     closeSheet();
     closeDeleteSheet();
+    closeResetSheet();
   });
 
   // Delete sheet
   document.getElementById('delete-cancel').addEventListener('click', closeDeleteSheet);
   document.getElementById('delete-confirm').addEventListener('click', confirmDelete);
+
+  // Reset sheet
+  document.getElementById('reset-cancel').addEventListener('click', closeResetSheet);
+  document.getElementById('reset-confirm').addEventListener('click', () => {
+    if (resetTarget) { completeTask(resetTarget); closeResetSheet(); }
+  });
 });
 
 // ── Date helpers ─────────────────────────────────────────
@@ -1480,6 +1587,26 @@ function confirmDelete() {
   if (deleteTarget) deleteTask(deleteTarget);
 }
 
+let resetTarget = null;
+
+function openResetSheet(task) {
+  resetTarget = task;
+  const newDue = addDays(task.interval_days || 30);
+  const formatted = parseDate(newDue).toLocaleDateString('en-CA', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+  document.getElementById('reset-body').innerHTML =
+    `The next reckoning for <strong>${task.title}</strong> will be reset to <strong>${formatted}</strong>.`;
+  document.getElementById('sheet-backdrop').classList.add('visible');
+  document.getElementById('reset-sheet').classList.add('open');
+}
+
+function closeResetSheet() {
+  document.getElementById('reset-sheet').classList.remove('open');
+  document.getElementById('sheet-backdrop').classList.remove('visible');
+  resetTarget = null;
+}
+
 async function handleSheetSubmit(e) {
   e.preventDefault();
 
@@ -1699,7 +1826,9 @@ function render() {
 
     wrapper.appendChild(card);
 
-    card.addEventListener('click', () => completeTask(task));
+    card.addEventListener('click', () => {
+      if (taskIsDone) { openResetSheet(task); } else { completeTask(task); }
+    });
 
     return wrapper;
   }
