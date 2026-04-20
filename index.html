@@ -1553,6 +1553,7 @@ function addSwipeHandlers(card, wrapper, task) {
     dragging  = false;
     dirLocked = null;
     card.style.transition = 'none';
+    card.setPointerCapture(e.pointerId);
   });
 
   card.addEventListener('pointermove', e => {
@@ -1567,7 +1568,8 @@ function addSwipeHandlers(card, wrapper, task) {
           card.setPointerCapture(e.pointerId);
           dragging = true;
         } else {
-          // Vertical — release and let scroll happen
+          // Vertical — release capture and let scroll happen
+          card.releasePointerCapture(e.pointerId);
           activePtrId = null;
           card.style.transition = 'transform 0.22s ease';
           snapTo(snapState, false);
