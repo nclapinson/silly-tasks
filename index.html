@@ -1677,14 +1677,6 @@ function render() {
     const wrapper = document.createElement('div');
     wrapper.className = 'card-wrapper';
 
-    const deleteAction = document.createElement('div');
-    deleteAction.className = 'card-action action-delete';
-    deleteAction.innerHTML = `<span class="action-icon">✕</span><span class="action-label">Strike from<br>Record</span>`;
-
-    const editAction = document.createElement('div');
-    editAction.className = 'card-action action-edit';
-    editAction.innerHTML = `<span class="action-icon">✎</span><span class="action-label">Amend<br>Record</span>`;
-
     const card = document.createElement('div');
     card.className = 'task-card card-entering ' + (taskIsDone ? 'just-done' : heatClass(days));
     card.style.animationDelay = `${index * 35}ms`;
@@ -1705,11 +1697,9 @@ function render() {
       </div>
     `;
 
-    wrapper.appendChild(deleteAction);
-    wrapper.appendChild(editAction);
     wrapper.appendChild(card);
 
-    addSwipeHandlers(card, wrapper, task);
+    card.addEventListener('click', () => completeTask(task));
 
     return wrapper;
   }
