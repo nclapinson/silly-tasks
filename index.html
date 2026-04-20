@@ -1396,6 +1396,7 @@
     <button type="button" class="reset-cancel" id="reset-cancel">Abandon Post</button>
     <button type="button" class="reset-confirm" id="reset-confirm">Amend the Record</button>
   </div>
+  <button type="button" class="sheet-amend-btn" id="reset-undo" style="margin-top:0.75rem;color:var(--muted);border-color:var(--border-lt);">Whoops — Rescind the Filing</button>
   <button type="button" class="sheet-amend-btn" id="reset-amend">Amend Details</button>
   <button type="button" class="sheet-delete-link" id="reset-clear-flag" style="display:none;color:var(--muted);">⚑ Not a duplicate — clear review flag</button>
   <button type="button" class="sheet-delete-link" id="reset-delete">Strike from Record</button>
@@ -1517,6 +1518,9 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reset-cancel').addEventListener('click', closeResetSheet);
   document.getElementById('reset-confirm').addEventListener('click', () => {
     if (resetTarget) { completeTask(resetTarget); closeResetSheet(); }
+  });
+  document.getElementById('reset-undo').addEventListener('click', () => {
+    const t = resetTarget; closeResetSheet(); undoCompletion(t);
   });
   document.getElementById('reset-amend').addEventListener('click', () => {
     const t = resetTarget; closeResetSheet();
@@ -1779,6 +1783,21 @@ function formatLong(dateStr) {
   return parseDate(dateStr).toLocaleDateString('en-CA', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
+}
+
+async function undoCompletion(task) {
+  const today = addDays(0);
+  const { error } = await db.from('tasks')
+    .update({ last_completed_at: null, due_date: today })
+    .eq('id', task.id);
+  if (!error) {
+    task.last_completed_at = null;
+    task.due_date = today;
+    render();
+    showToast('Filing rescinded. Duty restored to active.');
+  } else {
+    showToast(`Could not rescind: ${error.message}`, 'error');
+  }
 }
 
 async function clearFlag(task) {
